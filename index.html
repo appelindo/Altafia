@@ -567,6 +567,7 @@
       <div class="bayar">
         <div class="opsi-bayar terpilih" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening penjual muncul sesudah order terkirim</small></div><span class="cek">✓</span></div>
         <div class="opsi-bayar" data-bayar="QRIS"><span class="ic">📱</span><div>QRIS<small>Kode QRIS penjual muncul sesudah order terkirim</small></div><span class="cek">✓</span></div>
+        <div class="opsi-bayar" data-bayar="COD"><span class="ic">💵</span><div>COD<small>Bayar tunai saat barang diambil</small></div><span class="cek">✓</span></div>
       </div>
     </div>
     <div class="galat" id="o-galat"></div>
@@ -690,6 +691,7 @@
       <div class="bayar">
         <div class="opsi-bayar2 terpilih" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening tiap penjual muncul sesudah checkout terkirim</small></div><span class="cek">✓</span></div>
         <div class="opsi-bayar2" data-bayar="QRIS"><span class="ic">📱</span><div>QRIS<small>Kode QRIS tiap penjual muncul sesudah checkout terkirim</small></div><span class="cek">✓</span></div>
+        <div class="opsi-bayar2" data-bayar="COD"><span class="ic">💵</span><div>COD<small>Bayar tunai saat barang diambil</small></div><span class="cek">✓</span></div>
       </div>
     </div>
     <div class="galat" id="co-galat"></div>
@@ -874,7 +876,7 @@ const KATEGORI = [
   { nama: 'Jasa', emoji: '🛠️' },
   { nama: 'Lainnya', emoji: '🧺' }
 ];
-const LABEL_BAYAR = { TUNAI: 'Tunai saat ambil barang', TRANSFER: 'Transfer bank', QRIS: 'QRIS' };
+const LABEL_BAYAR = { TUNAI: 'Tunai saat ambil barang', TRANSFER: 'Transfer bank', QRIS: 'QRIS', COD: 'COD (bayar tunai saat ambil barang)' };
 const LABEL_STATUS = { TERKIRIM: 'Terkirim', DIKONFIRMASI: 'Dikonfirmasi', SIAP_DIAMBIL: 'Siap Diambil', SELESAI: 'Selesai', BATAL: 'Dibatalkan' };
 let semuaProduk = [];
 let kataCari = '';
@@ -992,6 +994,42 @@ function kartuHtml(p, kecil){
     '<button class="btn-order" ' + (habis ? 'disabled' : '') + '>' + (habis ? 'Stok Habis' : '🛒 Order') + '</button>' +
     '<button class="btn-keranjang" ' + (habis ? 'disabled' : '') + '>＋ Keranjang</button></div>';
 }
+/* Animasi lajur PO: bergeser perlahan ke kiri dan berputar tanpa putus.
+   Berhenti sejenak sesudah disentuh/digeser manual; hormati pengurangan
+   gerak dari sistem. Satu putaran rAF bersama, dimulai ulang tiap render. */
+let poAnimasiId = null;
+let poJedaSampai = 0;
+function mulaiAnimasiPo_(){
+  const el = $('daftar-po');
+  if (poAnimasiId) { cancelAnimationFrame(poAnimasiId); poAnimasiId = null; }
+  if (!el || !el.querySelector('.kartu-po.duplikat')) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!el.dataset.jedaTerpasang) {
+    el.dataset.jedaTerpasang = '1';
+    const jeda = () => { poJedaSampai = performance.now() + 4000; };
+    el.addEventListener('pointerdown', jeda);
+    el.addEventListener('touchstart', jeda, { passive: true });
+    el.addEventListener('wheel', jeda, { passive: true });
+  }
+  let terakhir = 0;
+  const langkah = (t) => {
+    poAnimasiId = requestAnimationFrame(langkah);
+    if (!el.isConnected || !$('seksi-po') || $('seksi-po').style.display === 'none') { terakhir = t; return; }
+    if (document.hidden || t < poJedaSampai) { terakhir = t; return; }
+    if (terakhir) {
+      const dt = Math.min(t - terakhir, 80);
+      el.scrollLeft += dt * 0.03; // ±30 px per detik
+      const pertama = el.querySelector('.kartu-po:not(.duplikat)');
+      const salinan = el.querySelector('.kartu-po.duplikat');
+      if (pertama && salinan) {
+        const periode = salinan.offsetLeft - pertama.offsetLeft;
+        if (periode > 0 && el.scrollLeft >= periode) el.scrollLeft -= periode;
+      }
+    }
+    terakhir = t;
+  };
+  poAnimasiId = requestAnimationFrame(langkah);
+}
 function renderKatalog(){
   const hasil = semuaProduk.filter(cocokFilter);
   /* Bagian PO */
@@ -1006,6 +1044,19 @@ function renderKatalog(){
     d.addEventListener('click', () => bukaDetail(p.id));
     elPo.appendChild(d);
   });
+  // Animasi jalan ke kiri: daftar digandakan supaya bisa berputar tanpa
+  // putus; salinannya berfungsi sama seperti kartu asli (ketuk -> detail).
+  if (po.length >= 2) {
+    po.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'kartu-po duplikat';
+      d.setAttribute('aria-hidden', 'true');
+      d.innerHTML = kartuHtml(p, true);
+      d.addEventListener('click', () => bukaDetail(p.id));
+      elPo.appendChild(d);
+    });
+  }
+  mulaiAnimasiPo_();
   /* Grid umum */
   const grid = $('daftar-produk');
   grid.innerHTML = '';
@@ -1382,6 +1433,8 @@ function tampilKonfirmasi(data, ktx){
     } else {
       kotak.innerHTML = '<h4>📱 Bayar dengan QRIS</h4><p>Penjual belum mengunggah gambar QRIS. Silakan chat penjual untuk meminta kode QRIS-nya, ya.</p>';
     }
+  } else if (ktx.metode === 'COD') {
+    kotak.innerHTML = '<h4>💵 COD — Bayar Saat Ambil Barang</h4><p>Siapkan uang pas sebesar <b>' + rp(data.total) + '</b>, bayar tunai langsung ke <b>' + esc(lapak.nama || 'penjual') + '</b> saat barang diambil, sesudah penjual mengonfirmasi pesananmu.</p>';
   } else {
     kotak.innerHTML = '<h4>💵 Pembayaran Tunai</h4><p>Siapkan uang pas sebesar <b>' + rp(data.total) + '</b>, bayar langsung ke <b>' + esc(lapak.nama || 'penjual') + '</b> saat barang diambil, sesudah penjual mengonfirmasi pesananmu.</p>';
   }
@@ -1684,6 +1737,8 @@ function tampilKonfirmasiKeranjang(hasil, grupKode, metode, gagalItem){
       html += lapak.qrisUrl
         ? '<div class="kotak"><h4>📱 QRIS ' + esc(g.namaLapak) + '</h4><div class="qris-tampil"><img src="' + esc(lapak.qrisUrl) + '" alt="QRIS penjual"><button type="button" class="btn-qris-unduh" data-qris="' + esc(lapak.qrisUrl) + '">⬇️ Unduh gambar QRIS</button><span>Scan kode di atas dengan nominal <b>' + rp(g.total) + '</b> sesudah penjual mengonfirmasi pesananmu.</span></div></div>'
         : '<div class="kotak"><h4>📱 QRIS ' + esc(g.namaLapak) + '</h4><p>Penjual belum mengunggah gambar QRIS — chat penjualnya untuk meminta kode QRIS.</p></div>';
+    } else if (metode === 'COD') {
+      html += '<div class="kotak"><h4>💵 COD — ' + esc(g.namaLapak) + '</h4><p>Bayar tunai <b>' + rp(g.total) + '</b> langsung ke penjual saat barang diambil, sesudah pesananmu dikonfirmasi.</p></div>';
     } else {
       html += '<div class="kotak"><h4>💵 Tunai — ' + esc(g.namaLapak) + '</h4><p>Bayar <b>' + rp(g.total) + '</b> langsung ke penjual saat pengambilan, sesudah pesananmu dikonfirmasi.</p></div>';
     }
