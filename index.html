@@ -543,18 +543,13 @@
       <div class="catatan-salah" id="s-wa">Nomor WhatsApp wajib diisi supaya penjual bisa mengonfirmasi.</div>
     </div>
     <div class="grup">
-      <label>Tim / Unit</label>
-      <input id="o-tim" placeholder="cth. Tim MPPP">
-    </div>
-    <div class="grup">
       <label>Catatan <small>(opsional)</small></label>
       <textarea id="o-catatan" rows="2" placeholder="cth. pedas sedang, diambil jam 12 di lobi"></textarea>
     </div>
     <div class="grup">
       <label>Pembayaran</label>
       <div class="bayar">
-        <div class="opsi-bayar terpilih" data-bayar="TUNAI"><span class="ic">💵</span><div>Tunai saat ambil barang<small>Bayar langsung ke penjual saat pengambilan</small></div><span class="cek">✓</span></div>
-        <div class="opsi-bayar" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening penjual muncul sesudah order terkirim</small></div><span class="cek">✓</span></div>
+        <div class="opsi-bayar terpilih" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening penjual muncul sesudah order terkirim</small></div><span class="cek">✓</span></div>
         <div class="opsi-bayar" data-bayar="QRIS"><span class="ic">📱</span><div>QRIS<small>Kode QRIS penjual muncul sesudah order terkirim</small></div><span class="cek">✓</span></div>
       </div>
     </div>
@@ -672,18 +667,13 @@
       <div class="catatan-salah" id="s-co-wa">Nomor WhatsApp wajib diisi supaya penjual bisa mengonfirmasi.</div>
     </div>
     <div class="grup">
-      <label>Tim / Unit</label>
-      <input id="co-tim" placeholder="cth. Tim MPPP">
-    </div>
-    <div class="grup">
       <label>Catatan <small>(opsional)</small></label>
       <textarea id="co-catatan" rows="2" placeholder="cth. diambil jam 12 di lobi"></textarea>
     </div>
     <div class="grup">
       <label>Pembayaran <small>(berlaku untuk semua pesanan)</small></label>
       <div class="bayar">
-        <div class="opsi-bayar2 terpilih" data-bayar="TUNAI"><span class="ic">💵</span><div>Tunai saat ambil barang<small>Bayar langsung ke penjual saat pengambilan</small></div><span class="cek">✓</span></div>
-        <div class="opsi-bayar2" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening tiap penjual muncul sesudah checkout terkirim</small></div><span class="cek">✓</span></div>
+        <div class="opsi-bayar2 terpilih" data-bayar="TRANSFER"><span class="ic">🏦</span><div>Transfer bank<small>Nomor rekening tiap penjual muncul sesudah checkout terkirim</small></div><span class="cek">✓</span></div>
         <div class="opsi-bayar2" data-bayar="QRIS"><span class="ic">📱</span><div>QRIS<small>Kode QRIS tiap penjual muncul sesudah checkout terkirim</small></div><span class="cek">✓</span></div>
       </div>
     </div>
@@ -1262,7 +1252,7 @@ async function bagikanProduk(p){
 let orderKtx = null;
 function bukaOrder(p){
   if (p.status === 'HABIS') { toast('Maaf, stok jualan ini sedang habis.'); return; }
-  orderKtx = { produk: p, jumlah: 1, metode: 'TUNAI', variasi: '', hargaSatuan: Number(p.harga) || 0 };
+  orderKtx = { produk: p, jumlah: 1, metode: 'TRANSFER', variasi: '', hargaSatuan: Number(p.harga) || 0 };
   const wadahFoto = $('o-foto');
   wadahFoto.className = 'mini ' + kelasWarna(p.nama);
   wadahFoto.innerHTML = fotoHtml(p.fotoUrl, p.nama);
@@ -1287,13 +1277,13 @@ function bukaOrder(p){
     $('o-harga').textContent = rp(p.harga) + ' / pcs';
   }
   $('o-jumlah').textContent = '1';
-  $('o-pembeli').value = ''; $('o-wa').value = ''; $('o-tim').value = ''; $('o-catatan').value = '';
+  $('o-pembeli').value = ''; $('o-wa').value = ''; $('o-catatan').value = '';
   $('o-pembeli').classList.remove('salah'); $('o-wa').classList.remove('salah');
   $('s-pembeli').style.display = 'none'; $('s-wa').style.display = 'none';
   tampilGalat('o-galat', '');
-  document.querySelectorAll('.opsi-bayar').forEach(o => o.classList.toggle('terpilih', o.dataset.bayar === 'TUNAI'));
+  document.querySelectorAll('.opsi-bayar').forEach(o => o.classList.toggle('terpilih', o.dataset.bayar === 'TRANSFER'));
   segarkanTotal();
-  isiOtomatisPembeli($('o-pembeli'), $('o-wa'), $('o-tim'));
+  isiOtomatisPembeli($('o-pembeli'), $('o-wa'));
   bukaLembar('lembar-order');
 }
 function pilihVariasi(v, tombol){
@@ -1335,13 +1325,13 @@ $('o-kirim').addEventListener('click', async () => {
       idProduk: orderKtx.produk.id,
       nama: namaEl.value.trim(),
       noWa: waEl.value.trim(),
-      tim: $('o-tim').value.trim(),
+      tim: '',
       jumlah: orderKtx.jumlah,
       metode: orderKtx.metode,
       variasi: orderKtx.variasi || '',
       catatan: $('o-catatan').value.trim()
     });
-    simpanDataPembeli({ nama: namaEl.value.trim(), noWa: waEl.value.trim(), tim: $('o-tim').value.trim() });
+    simpanDataPembeli({ nama: namaEl.value.trim(), noWa: waEl.value.trim() });
     tampilKonfirmasi(data, orderKtx);
   } catch (e) {
     tampilGalat('o-galat', e.message);
@@ -1564,7 +1554,7 @@ function waTampil(v){
   const s = String(v || '').replace(/[\s-]/g, '');
   return (s && s.charAt(0) === '8') ? '0' + s : s;
 }
-async function isiOtomatisPembeli(elNama, elWa, elTim){
+async function isiOtomatisPembeli(elNama, elWa){
   if (sesi) {
     let pg = (profilCache && profilCache.pengguna) || null;
     let lapak = (profilCache && profilCache.lapak) || null;
@@ -1580,8 +1570,6 @@ async function isiOtomatisPembeli(elNama, elWa, elTim){
       if (pg.nama) elNama.value = pg.nama;
       const wa = waTampil(pg.noWa || (lapak && lapak.noWa) || '');
       if (wa) elWa.value = wa;
-      const tim = pg.tim || (lapak && lapak.tim) || '';
-      if (tim) elTim.value = tim;
       return;
     }
   }
@@ -1589,7 +1577,6 @@ async function isiOtomatisPembeli(elNama, elWa, elTim){
   if (t) {
     if (!elNama.value && t.nama) elNama.value = t.nama;
     if (!elWa.value && t.noWa) elWa.value = waTampil(t.noWa);
-    if (!elTim.value && t.tim) elTim.value = t.tim;
   }
 }
 
@@ -1597,11 +1584,11 @@ async function isiOtomatisPembeli(elNama, elWa, elTim){
 let checkoutKtx = null;
 $('kr-checkout').addEventListener('click', () => {
   if (!keranjang.length) return;
-  checkoutKtx = { metode: 'TUNAI' };
-  document.querySelectorAll('.opsi-bayar2').forEach(x => x.classList.toggle('terpilih', x.dataset.bayar === 'TUNAI'));
+  checkoutKtx = { metode: 'TRANSFER' };
+  document.querySelectorAll('.opsi-bayar2').forEach(x => x.classList.toggle('terpilih', x.dataset.bayar === 'TRANSFER'));
   renderRingkasanCheckout();
   tampilGalat('co-galat', '');
-  isiOtomatisPembeli($('co-pembeli'), $('co-wa'), $('co-tim'));
+  isiOtomatisPembeli($('co-pembeli'), $('co-wa'));
   bukaLembar('lembar-checkout');
 });
 function renderRingkasanCheckout(){
@@ -1641,7 +1628,7 @@ $('co-kirim').addEventListener('click', async () => {
     try {
       const data = await api('order', {
         idProduk: item.idProduk, nama, noWa,
-        tim: $('co-tim').value.trim(),
+        tim: '',
         jumlah: item.jumlah, metode: checkoutKtx.metode,
         variasi: item.variasi || '', catatan: $('co-catatan').value.trim(),
         grup: grupKode
@@ -1662,7 +1649,7 @@ $('co-kirim').addEventListener('click', async () => {
     tampilGalat('co-galat', 'Semua pesanan gagal terkirim' + (gagalItem.length ? ': ' + gagalItem[0].pesan : '.'));
     return;
   }
-  simpanDataPembeli({ nama, noWa, tim: $('co-tim').value.trim() });
+  simpanDataPembeli({ nama, noWa });
   tampilKonfirmasiKeranjang(hasil, grupKode, checkoutKtx.metode, gagalItem);
 });
 function tampilKonfirmasiKeranjang(hasil, grupKode, metode, gagalItem){
