@@ -235,6 +235,7 @@
   .qris-tampil{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
   .qris-tampil img{width:190px;height:190px;object-fit:contain;border:1px solid var(--garis);border-radius:8px;background:#fff}
   .qris-tampil span{font-size:11.5px;color:var(--teks2);text-align:center;line-height:1.5}
+  .btn-qris-unduh{display:block;width:100%;margin:4px 0;padding:11px;border:1.5px solid var(--oranye);background:#fff;color:var(--oranye);border-radius:8px;font-weight:700;font-size:13.5px;cursor:pointer}
   .rek{font-size:15px;font-weight:700;letter-spacing:.6px;word-break:break-all}
   .btn-salin{margin-top:8px;min-height:44px;padding:0 16px;border:1.5px solid var(--oranye);color:var(--oranye);background:#fff;border-radius:6px;font-weight:700;cursor:pointer}
   .status-alur{display:flex;align-items:flex-start;margin:14px 16px 2px}
@@ -703,7 +704,6 @@
   <div class="pegangan"></div>
   <div class="kepala"><b>🧾 Pesanan Saya</b><button class="x" data-tutup>✕</button></div>
   <div class="isi">
-    <p class="sub" id="ps-sub" style="margin:12px 16px 0">Status pesananmu, diambil langsung dari server.</p>
     <div id="ps-daftar"></div>
     <div class="kotak" style="margin-bottom:16px">
       <h4 style="margin-bottom:6px">📱 Riwayat tidak muncul di HP ini?</h4>
@@ -1363,6 +1363,7 @@ function tampilKonfirmasi(data, ktx){
     if (lapak.qrisUrl) {
       kotak.innerHTML = '<h4>📱 Bayar dengan QRIS</h4><div class="qris-tampil">' +
         '<img src="' + esc(lapak.qrisUrl) + '" alt="QRIS penjual">' +
+        '<button type="button" class="btn-qris-unduh" data-qris="' + esc(lapak.qrisUrl) + '">⬇️ Unduh gambar QRIS</button>' +
         '<span>QRIS a.n. <b>' + esc(lapak.nama || '') + '</b><br>Scan dengan aplikasi bank / e-wallet apa pun, nominal <b>' + rp(data.total) + '</b>, sesudah penjual mengonfirmasi.</span></div>';
     } else {
       kotak.innerHTML = '<h4>📱 Bayar dengan QRIS</h4><p>Penjual belum mengunggah gambar QRIS. Silakan chat penjual untuk meminta kode QRIS-nya, ya.</p>';
@@ -1669,7 +1670,7 @@ function tampilKonfirmasiKeranjang(hasil, grupKode, metode, gagalItem){
       html += '<div class="kotak"><h4>🏦 Transfer ke ' + esc(g.namaLapak) + '</h4><p>Transfer sebesar <b>' + rp(g.total) + '</b> ke rekening berikut sesudah penjual mengonfirmasi pesananmu:</p><div class="rek">' + esc(lapak.noRekening || '—') + '</div><button class="btn-salin" data-salin="' + esc(lapak.noRekening || '') + '">Salin Nomor Rekening</button></div>';
     } else if (metode === 'QRIS') {
       html += lapak.qrisUrl
-        ? '<div class="kotak"><h4>📱 QRIS ' + esc(g.namaLapak) + '</h4><div class="qris-tampil"><img src="' + esc(lapak.qrisUrl) + '" alt="QRIS penjual"><span>Scan kode di atas dengan nominal <b>' + rp(g.total) + '</b> sesudah penjual mengonfirmasi pesananmu.</span></div></div>'
+        ? '<div class="kotak"><h4>📱 QRIS ' + esc(g.namaLapak) + '</h4><div class="qris-tampil"><img src="' + esc(lapak.qrisUrl) + '" alt="QRIS penjual"><button type="button" class="btn-qris-unduh" data-qris="' + esc(lapak.qrisUrl) + '">⬇️ Unduh gambar QRIS</button><span>Scan kode di atas dengan nominal <b>' + rp(g.total) + '</b> sesudah penjual mengonfirmasi pesananmu.</span></div></div>'
         : '<div class="kotak"><h4>📱 QRIS ' + esc(g.namaLapak) + '</h4><p>Penjual belum mengunggah gambar QRIS — chat penjualnya untuk meminta kode QRIS.</p></div>';
     } else {
       html += '<div class="kotak"><h4>💵 Tunai — ' + esc(g.namaLapak) + '</h4><p>Bayar <b>' + rp(g.total) + '</b> langsung ke penjual saat pengambilan, sesudah pesananmu dikonfirmasi.</p></div>';
@@ -2537,8 +2538,6 @@ function gambarPesananSaya(){
   wadah.querySelectorAll('.ps-beri-ulasan').forEach(b => b.addEventListener('click', () => {
     bukaUlasan_(b.dataset.id, b.dataset.produk, b.dataset.lapak);
   }));
-  $('ps-sub').textContent = 'Status diambil langsung dari server · diperbarui ' + jamKini_() +
-    ' — tutup lalu buka lagi lembar ini untuk menyegarkan.';
 }
 $('pill-pesanan-saya').addEventListener('click', async () => {
   bukaLembar('lembar-pesanan-saya');
@@ -2576,6 +2575,31 @@ $('ps-cari-btn').addEventListener('click', async () => {
 });
 
 /* ================= Awal ================= */
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.btn-qris-unduh');
+  if (!b) return;
+  const url = b.dataset.qris;
+  const teksAsli = b.textContent;
+  b.textContent = 'Mengunduh…';
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('unduh gagal');
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'QRIS-Altafia.jpg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    b.textContent = '✓ QRIS terunduh';
+    setTimeout(() => { b.textContent = teksAsli; }, 2500);
+  } catch (err) {
+    window.open(url, '_blank');
+    b.textContent = teksAsli;
+  }
+});
+
 bangunKategori();
 segarkanUiSesi();
 muatKatalog();
