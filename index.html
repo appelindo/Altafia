@@ -1314,10 +1314,11 @@ $('lp-kirim').addEventListener('click', async () => {
 
 /* ================= Bagikan ================= */
 function tautanProduk(id){
-  // Lewat halaman singgah server supaya pratinjau tautan di WhatsApp/dll.
-  // tampil sbg kartu berisi foto, nama & harga produk (Open Graph);
-  // pengunjung manusia otomatis diteruskan ke aplikasi.
-  return API_URL + '?produk=' + encodeURIComponent(id);
+  // Halaman statis p/<id>.html di situs ini juga: berisi tag Open Graph
+  // (foto, nama, harga) agar pratinjau tautan di WhatsApp/dll. tampil sbg
+  // kartu menarik; pengunjung manusia otomatis diteruskan ke produk ini.
+  // (Apps Script tidak bisa: halamannya dibungkus iframe oleh Google.)
+  return location.origin + location.pathname + 'p/' + encodeURIComponent(id) + '.html';
 }
 async function bagikanProduk(p){
   const tautan = tautanProduk(p.id);
@@ -1332,7 +1333,7 @@ async function bagikanProduk(p){
 
 async function bagikanToko(){
   if (!tokoAktif || !tokoAktif.id) return;
-  const tautan = API_URL + '?lapak=' + encodeURIComponent(tokoAktif.id);
+  const tautan = location.origin + location.pathname + 'toko.html';
   const teks = '*' + (tokoAktif.nama || 'Altafia') + '*\nPesan pempek & tekwan online di sini:';
   if (navigator.share) {
     try { await navigator.share({ title: 'Altafia', text: teks, url: tautan }); } catch (e) {}
