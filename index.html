@@ -212,6 +212,8 @@
   .baris-variasi{display:flex;gap:6px;margin-bottom:6px}
   .baris-variasi input{flex:1;min-width:0}
   .baris-variasi .v-harga{flex:0 0 118px}
+  .baris-variasi .v-stok{flex:0 0 84px}
+  .chip-variasi button:disabled{opacity:.45;cursor:not-allowed}
   .baris-variasi .v-hapus{flex:0 0 44px;min-height:44px;border-radius:6px;border:1px solid #ef9a9a;background:#fff;color:#c62828;font-size:15px;cursor:pointer}
   .petunjuk{font-size:11.5px;color:var(--teks2);line-height:1.5;margin-top:6px}
   /* Keranjang */
@@ -476,7 +478,7 @@
         <div class="grup"><label>Variasi <small>(opsional — harga boleh berbeda per variasi)</small></label>
           <div id="pr-variasi"></div>
           <button type="button" class="btn-kecil" id="pr-variasi-tambah">＋ Tambah Variasi</button>
-          <p class="petunjuk">Kosongkan bila jualanmu tidak punya variasi. Bila diisi, pembeli wajib memilih satu variasi dan harga mengikuti variasi yang dipilih. Stok tetap satu untuk semua variasi.</p>
+          <p class="petunjuk">Kosongkan bila jualanmu tidak punya variasi. Bila diisi, pembeli wajib memilih satu variasi dan harga mengikuti variasi yang dipilih. Stok bisa diisi per variasi pada kolom Stok di tiap baris: variasi yang stoknya diisi berkurang sendiri setiap dipesan, sedangkan variasi yang stoknya dikosongkan mengikuti stok produk di atas.</p>
         </div>
         <div class="grup"><label>Mode Jualan</label>
           <select id="pr-mode"><option value="READY">Ready (langsung tersedia)</option><option value="PO">Pre-Order (PO)</option></select>
@@ -994,6 +996,24 @@ function waIndo(no){
   return s;
 }
 function variasiProduk(p){ return (p && Array.isArray(p.variasi)) ? p.variasi : []; }
+/* Stok per variasi: variasi berstok terlacak sendiri; tanpa stok mengikuti
+   stok produk. */
+function stokVariasiTerlacak_(v){
+  return !!(v && v.stok !== undefined && v.stok !== null && isFinite(Number(v.stok)));
+}
+function labelStokVariasi_(v){
+  if (!stokVariasiTerlacak_(v)) return '';
+  return Number(v.stok) > 0 ? ' · Stok ' + Number(v.stok) : ' · Habis';
+}
+/* Batas jumlah mengikuti stok terlacak: variasi berstok memakai stok
+   variasinya; selain itu produk READY dibatasi stok produknya; produk PO
+   tidak dibatasi (stok produk PO memang tidak terlacak). */
+function batasJumlah_(p, v){
+  if (stokVariasiTerlacak_(v)) return Math.max(1, Number(v.stok));
+  if (!p) return Infinity;
+  if (p.mode === 'READY') { const s = Number(p.stok); return isFinite(s) ? Math.max(1, s) : Infinity; }
+  return Infinity;
+}
 function hargaTampil(p){
   const v = variasiProduk(p);
   if (v.length) return 'Mulai ' + rp(Math.min.apply(null, v.map(x => Number(x.harga) || 0)));
@@ -1151,7 +1171,7 @@ function isiDetail_(p, l, ulasan){
     const daftarVariasi = variasiProduk(p);
     if (daftarVariasi.length) {
       kotakVariasi.innerHTML = '<div class="sub" style="font-weight:700;margin:10px 0 6px">Pilihan Variasi</div><div class="chip-variasi">' +
-        daftarVariasi.map(v => '<span class="chip-info">' + esc(v.nama) + '<b>' + rp(v.harga) + '</b></span>').join('') + '</div>';
+        daftarVariasi.map(v => '<span class="chip-info">' + esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b></span>').join('') + '</div>';
       kotakVariasi.style.display = '';
     } else {
       kotakVariasi.innerHTML = '';
@@ -1373,11 +1393,13 @@ function bukaOrder(p){
     daftarVar.forEach(v => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.innerHTML = esc(v.nama) + '<b>' + rp(v.harga) + '</b>';
+      b.innerHTML = esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b>';
+      if (stokVariasiTerlacak_(v) && Number(v.stok) <= 0) b.disabled = true;
       b.addEventListener('click', () => pilihVariasi(v, b));
       wadahVar.appendChild(b);
     });
-    pilihVariasi(daftarVar[0], wadahVar.children[0]);
+    const idxAwal = Math.max(0, daftarVar.findIndex(v => !(stokVariasiTerlacak_(v) && Number(v.stok) <= 0)));
+    pilihVariasi(daftarVar[idxAwal], wadahVar.children[idxAwal]);
   } else {
     grupVar.style.display = 'none';
     $('o-harga').textContent = rp(p.harga) + ' / pcs';
@@ -1395,7 +1417,10 @@ function bukaOrder(p){
 function pilihVariasi(v, tombol){
   if (!orderKtx) return;
   orderKtx.variasi = v.nama;
+  orderKtx.variasiObj = v;
   orderKtx.hargaSatuan = Number(v.harga) || 0;
+  const batasV = batasJumlah_(orderKtx.produk, v);
+  if (orderKtx.jumlah > batasV) orderKtx.jumlah = batasV;
   document.querySelectorAll('#o-variasi button').forEach(b => b.classList.toggle('terpilih', b === tombol));
   $('o-harga').textContent = rp(orderKtx.hargaSatuan) + ' / pcs';
   segarkanTotal();
@@ -1406,7 +1431,12 @@ function segarkanTotal(){
   $('o-total').textContent = rp((Number(orderKtx.hargaSatuan) || 0) * orderKtx.jumlah);
 }
 $('o-kurang').addEventListener('click', () => { if (orderKtx && orderKtx.jumlah > 1) { orderKtx.jumlah--; segarkanTotal(); } });
-$('o-tambah').addEventListener('click', () => { if (orderKtx) { orderKtx.jumlah++; segarkanTotal(); } });
+$('o-tambah').addEventListener('click', () => {
+  if (!orderKtx) return;
+  const batas = batasJumlah_(orderKtx.produk, orderKtx.variasiObj);
+  if (orderKtx.jumlah >= batas) { toast('Stok tersisa ' + batas + '.'); return; }
+  orderKtx.jumlah++; segarkanTotal();
+});
 document.querySelectorAll('.opsi-bayar').forEach(o => o.addEventListener('click', () => {
   if (!orderKtx) return;
   orderKtx.metode = o.dataset.bayar;
@@ -1544,11 +1574,13 @@ function bukaTambahKeranjang(p){
     daftarVar.forEach(v => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.innerHTML = esc(v.nama) + '<b>' + rp(v.harga) + '</b>';
+      b.innerHTML = esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b>';
+      if (stokVariasiTerlacak_(v) && Number(v.stok) <= 0) b.disabled = true;
       b.addEventListener('click', () => pilihVariasiTambah(v, b));
       wadahVar.appendChild(b);
     });
-    pilihVariasiTambah(daftarVar[0], wadahVar.children[0]);
+    const idxAwal = Math.max(0, daftarVar.findIndex(v => !(stokVariasiTerlacak_(v) && Number(v.stok) <= 0)));
+    pilihVariasiTambah(daftarVar[idxAwal], wadahVar.children[idxAwal]);
   } else {
     grupVar.style.display = 'none';
     $('tk-harga').textContent = rp(p.harga) + ' / pcs';
@@ -1559,7 +1591,10 @@ function bukaTambahKeranjang(p){
 function pilihVariasiTambah(v, tombol){
   if (!tambahKtx) return;
   tambahKtx.variasi = v.nama;
+  tambahKtx.variasiObj = v;
   tambahKtx.hargaSatuan = Number(v.harga) || 0;
+  const batasV = batasJumlah_(tambahKtx.produk, v);
+  if (tambahKtx.jumlah > batasV) tambahKtx.jumlah = batasV;
   document.querySelectorAll('#tk-variasi button').forEach(b => b.classList.toggle('terpilih', b === tombol));
   $('tk-harga').textContent = rp(tambahKtx.hargaSatuan) + ' / pcs';
   segarkanTotalTambah();
@@ -1570,13 +1605,20 @@ function segarkanTotalTambah(){
   $('tk-total').textContent = rp((Number(tambahKtx.hargaSatuan) || 0) * tambahKtx.jumlah);
 }
 $('tk-kurang').addEventListener('click', () => { if (tambahKtx && tambahKtx.jumlah > 1) { tambahKtx.jumlah--; segarkanTotalTambah(); } });
-$('tk-tambah').addEventListener('click', () => { if (tambahKtx) { tambahKtx.jumlah++; segarkanTotalTambah(); } });
+$('tk-tambah').addEventListener('click', () => {
+  if (!tambahKtx) return;
+  const batas = batasJumlah_(tambahKtx.produk, tambahKtx.variasiObj);
+  if (tambahKtx.jumlah >= batas) { toast('Stok tersisa ' + batas + '.'); return; }
+  tambahKtx.jumlah++; segarkanTotalTambah();
+});
 $('tk-masuk').addEventListener('click', () => {
   if (!tambahKtx) return;
   const p = tambahKtx.produk;
   const kunci = kunciItemKeranjang(p.id, tambahKtx.variasi);
   const ada = keranjang.find(i => kunciItemKeranjang(i.idProduk, i.variasi) === kunci);
   if (ada) {
+    const batasAda = batasJumlah_(p, tambahKtx.variasiObj);
+    if (ada.jumlah + tambahKtx.jumlah > batasAda) { toast('Stok tersisa ' + batasAda + ', keranjangmu sudah berisi ' + ada.jumlah + '.'); return; }
     ada.jumlah += tambahKtx.jumlah;
     ada.hargaSatuan = tambahKtx.hargaSatuan;
     ada.nama = p.nama;
@@ -1638,6 +1680,10 @@ function barisItemKeranjang(item){
     simpanKeranjang(); renderKeranjang();
   });
   d.querySelector('[data-tambah]').addEventListener('click', () => {
+    const p = semuaProduk.find(x => x.id === item.idProduk);
+    const vItem = p ? (variasiProduk(p).find(x => x.nama === item.variasi) || null) : null;
+    const batas = batasJumlah_(p, vItem);
+    if (item.jumlah >= batas) { toast('Stok tersisa ' + batas + '.'); return; }
     item.jumlah++;
     simpanKeranjang(); renderKeranjang();
   });
@@ -2142,16 +2188,18 @@ async function ubahStatusProduk(idProduk, status){
 }
 $('pj-tambah-produk').addEventListener('click', () => bukaFormProduk(null));
 /* ---------- Editor variasi di formulir produk ---------- */
-function tambahBarisVariasi(nama, harga){
+function tambahBarisVariasi(nama, harga, stok){
   const wadah = $('pr-variasi');
   if (wadah.children.length >= 10) { toast('Variasi maksimal 10 pilihan.'); return; }
   const d = document.createElement('div');
   d.className = 'baris-variasi';
   d.innerHTML = '<input class="v-nama" placeholder="Nama variasi, cth. Besar" maxlength="40">' +
     '<input class="v-harga" type="number" min="0" inputmode="numeric" placeholder="Harga Rp">' +
+    '<input class="v-stok" type="number" inputmode="numeric" placeholder="Stok" title="Stok variasi ini (kosongkan untuk mengikuti stok produk)">' +
     '<button type="button" class="v-hapus" title="Hapus variasi ini">✕</button>';
   d.querySelector('.v-nama').value = nama || '';
   if (harga != null && harga !== '') d.querySelector('.v-harga').value = harga;
+  if (stok != null && stok !== '') d.querySelector('.v-stok').value = stok;
   d.querySelector('.v-hapus').addEventListener('click', () => d.remove());
   wadah.appendChild(d);
 }
@@ -2163,9 +2211,13 @@ function kumpulkanVariasi(){
   document.querySelectorAll('#pr-variasi .baris-variasi').forEach(b => {
     const nama = b.querySelector('.v-nama').value.trim();
     const mentah = b.querySelector('.v-harga').value;
-    if (!nama && mentah === '') return;
+    const stokMentah = b.querySelector('.v-stok').value.trim();
+    if (!nama && mentah === '' && stokMentah === '') return;
     if (!nama || mentah === '' || isNaN(parseInt(mentah, 10)) || parseInt(mentah, 10) < 0) { adaYangSeparuh = true; return; }
-    hasil.push({ nama: nama, harga: parseInt(mentah, 10) });
+    if (stokMentah !== '' && !/^\d+$/.test(stokMentah)) { adaYangSeparuh = true; return; }
+    const item = { nama: nama, harga: parseInt(mentah, 10) };
+    if (stokMentah !== '') item.stok = parseInt(stokMentah, 10);
+    hasil.push(item);
   });
   return adaYangSeparuh ? null : hasil;
 }
@@ -2190,7 +2242,7 @@ function bukaFormProduk(p){
   $('pr-ambil').value = p ? (p.tglAmbil || '') : '';
   $('pr-desk').value = p ? (p.deskripsi || '') : '';
   $('pr-variasi').innerHTML = '';
-  if (p && Array.isArray(p.variasi)) p.variasi.forEach(v => tambahBarisVariasi(v.nama, v.harga));
+  if (p && Array.isArray(p.variasi)) p.variasi.forEach(v => tambahBarisVariasi(v.nama, v.harga, v.stok));
   if (p && p.fotoUrl) { img.src = p.fotoUrl; img.style.display = 'block'; } else { img.style.display = 'none'; }
   $('pr-grup-po').style.display = $('pr-mode').value === 'PO' ? '' : 'none';
   tampilGalat('pr-galat', '');
@@ -2202,7 +2254,7 @@ $('form-produk').addEventListener('submit', async e => {
   const harga = parseInt($('pr-harga').value, 10);
   if (!nama || isNaN(harga)) { tampilGalat('pr-galat', 'Nama jualan dan harga wajib diisi dengan benar.'); return; }
   const daftarVariasi = kumpulkanVariasi();
-  if (daftarVariasi === null) { tampilGalat('pr-galat', 'Setiap variasi wajib diisi nama dan harganya. Hapus baris variasi yang tidak dipakai.'); return; }
+  if (daftarVariasi === null) { tampilGalat('pr-galat', 'Setiap variasi wajib diisi nama dan harganya, dan stok (bila diisi) harus bilangan 0 atau lebih. Hapus baris variasi yang tidak dipakai.'); return; }
   tampilGalat('pr-galat', '');
   const stokMentah = $('pr-stok').value;
   const kirim = {
