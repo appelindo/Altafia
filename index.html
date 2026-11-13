@@ -110,6 +110,12 @@
   .lencana-status{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;background:#eef3f2;color:#2e7d6b}
   .lencana-status.habis{background:#fdecea;color:#c62828}
   .lencana-status.batal{background:#eee;color:#888}
+  .lencana-bayar{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;background:#fdecea;color:#c62828}
+  .lencana-bayar.sebagian{background:#fff3d6;color:#9a6a00}
+  .lencana-bayar.lunas{background:#e6f4ea;color:#137333}
+  .saring-bayar{display:flex;gap:8px;margin-bottom:12px}
+  .saring-bayar button{flex:1;min-height:42px;border-radius:999px;border:1.5px solid #ddd;background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:var(--teks2);cursor:pointer}
+  .saring-bayar button.aktif{background:var(--oranye);border-color:var(--oranye);color:#fff}
   /* Kartu grup pesanan masuk (satu kartu per pembeli/checkout) */
   .kgp-kepala{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .kgp-item{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--garis);align-items:flex-start}
@@ -386,6 +392,11 @@
     <div class="blok" id="pj-bungkus-pesanan" style="display:none">
       <h3>Pesanan Masuk</h3>
       <p class="sub">Pesanan terbaru tampil paling atas. Majukan statusnya supaya pembeli tahu kabarnya.</p>
+      <div class="saring-bayar" id="saring-bayar">
+        <button data-saring="semua" class="aktif">Semua</button>
+        <button data-saring="belum">Belum Bayar</button>
+        <button data-saring="lunas">Sudah Bayar</button>
+      </div>
       <div id="daftar-pesanan-saya"><p class="sub">Memuat…</p></div>
     </div>
   </div>
@@ -2226,26 +2237,67 @@ const LANGKAH_BERIKUT = {
   DIKONFIRMASI: { status: 'SIAP_DIAMBIL', label: 'Tandai Siap Diambil' },
   SIAP_DIAMBIL: { status: 'SELESAI', label: 'Tandai Selesai' }
 };
+let pesananMasukCache = [];
+let saringBayar = 'semua';
+function bayarGrup_(items){
+  const aktif = items.filter(o => o.status !== 'BATAL');
+  if (!aktif.length) return 'BATAL';
+  const lunas = aktif.filter(o => (o.bayar || 'BELUM') === 'LUNAS').length;
+  if (lunas === aktif.length) return 'LUNAS';
+  if (lunas > 0) return 'SEBAGIAN';
+  return 'BELUM';
+}
+function pesanSiapDiambil_(o){
+  return 'Halo ' + (o.namaPembeli || 'kak') + ' pempeknya udah siap ya, bisa diambil di tempat';
+}
+function gambarPesananMasuk_(){
+  const wadah = $('daftar-pesanan-saya');
+  wadah.innerHTML = '';
+  const grupMap = new Map();
+  pesananMasukCache.forEach(o => {
+    const kunci = o.grup || (o.idPesanan || o.id);
+    if (!grupMap.has(kunci)) grupMap.set(kunci, []);
+    grupMap.get(kunci).push(o);
+  });
+  let nBelum = 0, nLunas = 0;
+  grupMap.forEach(items => {
+    const b = bayarGrup_(items);
+    if (b === 'BELUM' || b === 'SEBAGIAN') nBelum++;
+    else if (b === 'LUNAS') nLunas++;
+  });
+  document.querySelectorAll('#saring-bayar button').forEach(btn => {
+    const k = btn.dataset.saring;
+    btn.classList.toggle('aktif', k === saringBayar);
+    btn.textContent = k === 'semua' ? 'Semua' : k === 'belum' ? 'Belum Bayar (' + nBelum + ')' : 'Sudah Bayar (' + nLunas + ')';
+  });
+  if (!pesananMasukCache.length) {
+    wadah.innerHTML = '<p class="sub">Belum ada pesanan masuk. Pesanan pembeli akan tampil di sini.</p>';
+    return;
+  }
+  let tampil = 0;
+  grupMap.forEach(items => {
+    const b = bayarGrup_(items);
+    if (saringBayar === 'belum' && !(b === 'BELUM' || b === 'SEBAGIAN')) return;
+    if (saringBayar === 'lunas' && b !== 'LUNAS') return;
+    wadah.appendChild(kartuGrupPesanan_(items));
+    tampil++;
+  });
+  if (!tampil) {
+    wadah.innerHTML = '<p class="sub">' + (saringBayar === 'lunas' ? 'Belum ada pesanan yang sudah dibayar.' : 'Tidak ada pesanan yang belum dibayar. Semua lunas 🎉') + '</p>';
+  }
+}
+document.querySelectorAll('#saring-bayar button').forEach(btn => btn.addEventListener('click', () => {
+  saringBayar = btn.dataset.saring;
+  gambarPesananMasuk_();
+}));
 async function muatPesananSaya(){
   const wadah = $('daftar-pesanan-saya');
   try {
     const data = await api('pesananSaya', { token: sesi.token });
     const daftar = (data && data.pesanan) || data || [];
     perbaruiMenuPenjual_(Array.isArray(daftar) ? daftar : []);
-    wadah.innerHTML = '';
-    if (!Array.isArray(daftar) || !daftar.length) {
-      wadah.innerHTML = '<p class="sub">Belum ada pesanan masuk. Pesanan pembeli akan tampil di sini.</p>';
-      return;
-    }
-    // Gabung per checkout: item-item satu kode grup tampil sebagai SATU
-    // kartu per pembeli (gaya marketplace); order tunggal berdiri sendiri.
-    const grupMap = new Map();
-    daftar.forEach(o => {
-      const kunci = o.grup || (o.idPesanan || o.id);
-      if (!grupMap.has(kunci)) grupMap.set(kunci, []);
-      grupMap.get(kunci).push(o);
-    });
-    grupMap.forEach(items => { wadah.appendChild(kartuGrupPesanan_(items)); });
+    pesananMasukCache = Array.isArray(daftar) ? daftar : [];
+    gambarPesananMasuk_();
   } catch (e) {
     wadah.innerHTML = '<p class="sub">' + esc(e.message) + '</p>';
   }
@@ -2266,6 +2318,7 @@ function kartuGrupPesanan_(items){
   const totalQty = items.reduce((s, o) => s + (Number(o.jumlah) || 0), 0);
   const totalHarga = items.reduce((s, o) => s + (Number(o.total) || 0), 0);
   const catatan = items.map(o => o.catatan).filter(Boolean)[0] || '';
+  const bayarGrup = bayarGrup_(items);
   const d = document.createElement('div');
   d.className = 'item';
   let html =
@@ -2277,6 +2330,8 @@ function kartuGrupPesanan_(items){
     (pertama.waktu ? ' · ' + esc(pertama.waktu) : '') +
     (pertama.tim ? '<br>Tim: ' + esc(pertama.tim) : '') +
     '<br>WA: ' + esc(waIndo(pertama.noWa) || '–') + ' · ' + esc(LABEL_BAYAR[pertama.metode] || pertama.metode || '') +
+    (statusGrup !== 'BATAL' ? '<br>Status bayar: <span class="lencana-bayar ' + (bayarGrup === 'LUNAS' ? 'lunas' : bayarGrup === 'SEBAGIAN' ? 'sebagian' : 'belum') + '">' +
+      (bayarGrup === 'LUNAS' ? '💰 LUNAS' : bayarGrup === 'SEBAGIAN' ? '💰 SEBAGIAN LUNAS' : '💰 BELUM BAYAR') + '</span>' : '') +
     (catatan ? '<br>Catatan: ' + esc(catatan) : '') + '</div>';
   items.forEach(o => {
     const idPesanan = o.idPesanan || o.id || '';
@@ -2296,6 +2351,8 @@ function kartuGrupPesanan_(items){
   html += '<div class="kgp-total"><span>Total ' + totalQty + ' produk</span><b>' + rp(totalHarga) + '</b></div>';
   html += '<div class="aksi">' +
     (pertama.noWa ? '<button class="btn-kecil" data-chat="1">💬 Chat Pembeli</button>' : '') +
+    (statusGrup === 'SIAP_DIAMBIL' && pertama.noWa ? '<button class="btn-kecil wa" data-wa-siap="1">📲 Kabari Siap Diambil</button>' : '') +
+    (statusGrup !== 'BATAL' ? '<button class="btn-kecil" data-bayar="1">' + (bayarGrup === 'LUNAS' ? '↩ Tandai Belum Bayar' : '💰 Tandai Sudah Bayar') + '</button>' : '') +
     (langkah ? '<button class="btn-kecil hijau" data-langkah="1">' + langkah.label + (items.length > 1 ? ' Semua' : '') + '</button>' : '') +
     '</div>';
   d.innerHTML = html;
@@ -2310,6 +2367,28 @@ function kartuGrupPesanan_(items){
     pesan += 'Total: ' + rp(totalHarga) + '\nStatus saat ini: ' + (LABEL_STATUS[statusGrup] || statusGrup) + '.';
     window.open(tautanWa(pertama.noWa, pesan), '_blank');
   });
+  const tombolWaSiap = d.querySelector('[data-wa-siap]');
+  if (tombolWaSiap) tombolWaSiap.addEventListener('click', () => {
+    window.open(tautanWa(pertama.noWa, pesanSiapDiambil_(pertama)), '_blank');
+  });
+  const tombolBayar = d.querySelector('[data-bayar]');
+  if (tombolBayar) tombolBayar.addEventListener('click', async () => {
+    const target = bayarGrup === 'LUNAS' ? 'BELUM' : 'LUNAS';
+    tombolBayar.disabled = true;
+    tombolBayar.textContent = 'Memproses…';
+    try {
+      for (const o of items) {
+        if (o.status === 'BATAL') continue;
+        if ((o.bayar || 'BELUM') !== target) {
+          await api('ubahBayar', { token: sesi.token, idPesanan: o.idPesanan || o.id, bayar: target });
+        }
+      }
+      toast(target === 'LUNAS' ? 'Pesanan ditandai SUDAH dibayar.' : 'Pesanan ditandai BELUM dibayar.');
+    } catch (e) {
+      toast(e.message);
+    }
+    muatPesananSaya();
+  });
   const tombol = d.querySelector('[data-langkah]');
   if (tombol) tombol.addEventListener('click', async () => {
     tombol.disabled = true;
@@ -2321,6 +2400,10 @@ function kartuGrupPesanan_(items){
         }
       }
       toast('Status pesanan diperbarui.');
+      if (langkah.status === 'SIAP_DIAMBIL' && pertama.noWa) {
+        const w = window.open(tautanWa(pertama.noWa, pesanSiapDiambil_(pertama)), '_blank');
+        if (!w) toast('Pesanan siap diambil. Ketuk 📲 Kabari Siap Diambil untuk WA pembeli.');
+      }
     } catch (e) {
       toast(e.message);
     }
@@ -2599,14 +2682,16 @@ function kartuPesananPembeli_(p){
   html += barisBarangPembeli_(p);
   html += '<div class="baris"><span>Penjual</span><b>' + esc(lapak.nama || '—') +
     (lapak.ruangan ? ' · ' + esc(lapak.ruangan) : '') + '</b></div>';
-  html += '<div class="baris"><span>Pembayaran</span><b>' + esc(LABEL_BAYAR[p.metode] || p.metode || '') + '</b></div>';
+  html += '<div class="baris"><span>Pembayaran</span><b>' + esc(LABEL_BAYAR[p.metode] || p.metode || '') +
+    (p.bayar ? ' · ' + (p.bayar === 'LUNAS' ? 'Lunas ✓' : 'Belum dibayar') : '') + '</b></div>';
   html += langkahHtml_(p.status);
   if (p.status === 'BATAL') {
     html += '<div class="kotak-batal">🚫 Pesanan ini dibatalkan.</div>';
   }
   if (p.status === 'SIAP_DIAMBIL') {
     html += '<div class="kotak-siap">✅ Pesananmu sudah siap diambil di <b>' + esc(lapak.nama || 'lapak') + '</b>' +
-      (lapak.ruangan ? ' (' + esc(lapak.ruangan) + ')' : '') + '. Bayar <b>' + rp(p.total) + '</b> saat pengambilan.</div>';
+      (lapak.ruangan ? ' (' + esc(lapak.ruangan) + ')' : '') +
+      (p.bayar === 'LUNAS' ? '. Pembayaranmu sudah lunas, tinggal ambil saja.</div>' : '. Bayar <b>' + rp(p.total) + '</b> saat pengambilan.</div>');
   }
   html += tombolChatPembeli_(lapak, p.id);
   html += tombolBatalPembeli_(p);
