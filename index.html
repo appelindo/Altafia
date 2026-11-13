@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Altafia — Toko Online</title>
+<meta name="description" content="Altafia — pesan pempek & tekwan asli Palembang secara online. Bayar Transfer atau QRIS, ambil di tempat.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Altafia">
+<meta property="og:title" content="Altafia — Pempek & Tekwan Asli Palembang">
+<meta property="og:description" content="Pesan pempek & tekwan asli Palembang secara online. Bayar Transfer atau QRIS, ambil di tempat.">
+<meta property="og:image" content="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w1200">
+<meta property="og:url" content="https://appelindo.github.io/Altafia/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400">
 <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400">
 <style>
@@ -517,6 +525,7 @@
   </div>
   <div class="tombol-bawah">
     <button class="btn oranye" id="t-chat">💬 Chat Penjual</button>
+    <button class="btn polos" id="t-bagikan" style="flex:0 0 54px">🔗</button>
   </div>
 </div>
 
@@ -1278,6 +1287,7 @@ $('d-tanya').addEventListener('click', async () => {
   window.open(tautanWa(l.noWa, pesan), '_blank');
 });
 $('d-bagikan').addEventListener('click', () => { if (produkAktif) bagikanProduk(produkAktif); });
+$('t-bagikan').addEventListener('click', bagikanToko);
 $('d-lapor').addEventListener('click', () => {
   if (!produkAktif) return;
   laporId = produkAktif.id;
@@ -1304,16 +1314,31 @@ $('lp-kirim').addEventListener('click', async () => {
 
 /* ================= Bagikan ================= */
 function tautanProduk(id){
-  return location.origin + location.pathname + '?produk=' + encodeURIComponent(id);
+  // Lewat halaman singgah server supaya pratinjau tautan di WhatsApp/dll.
+  // tampil sbg kartu berisi foto, nama & harga produk (Open Graph);
+  // pengunjung manusia otomatis diteruskan ke aplikasi.
+  return API_URL + '?produk=' + encodeURIComponent(id);
 }
 async function bagikanProduk(p){
   const tautan = tautanProduk(p.id);
-  const teks = (p.nama || 'Jualan') + ' — ' + hargaTampil(p) + ' di Altafia';
+  const teks = '*' + (p.nama || 'Jualan') + '* — ' + hargaTampil(p) + '\nDi Altafia • ' + ((p.lapak && p.lapak.nama) || 'Pempek & Tekwan');
   if (navigator.share) {
     try { await navigator.share({ title: 'Altafia', text: teks, url: tautan }); } catch (e) {}
   } else {
     const ok = await salinTeks(tautan);
     toast(ok ? 'Tautan produk tersalin. Tinggal tempel & kirim.' : 'Tautan: ' + tautan);
+  }
+}
+
+async function bagikanToko(){
+  if (!tokoAktif || !tokoAktif.id) return;
+  const tautan = API_URL + '?lapak=' + encodeURIComponent(tokoAktif.id);
+  const teks = '*' + (tokoAktif.nama || 'Altafia') + '*\nPesan pempek & tekwan online di sini:';
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Altafia', text: teks, url: tautan }); } catch (e) {}
+  } else {
+    const ok = await salinTeks(tautan);
+    toast(ok ? 'Tautan toko tersalin. Tinggal tempel & kirim.' : 'Tautan: ' + tautan);
   }
 }
 
