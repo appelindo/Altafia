@@ -209,10 +209,21 @@
   .chip-variasi button.terpilih b{color:var(--oranye)}
   .chip-variasi .chip-info{min-height:40px;padding:6px 12px;border-radius:20px;border:1.5px solid #eee;background:#fafafa;font-size:13px;display:flex;flex-direction:column;justify-content:center}
   .chip-variasi .chip-info b{font-size:12px;color:var(--oranye)}
-  .baris-variasi{display:flex;gap:6px;margin-bottom:6px}
+  .baris-variasi{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .baris-variasi .v-atas{display:flex;gap:6px;align-items:flex-start}
   .baris-variasi input{flex:1;min-width:0}
   .baris-variasi .v-harga{flex:0 0 118px}
   .baris-variasi .v-stok{flex:0 0 84px}
+  .v-foto{display:flex;align-items:center;gap:8px}
+  .v-thumb{width:44px;height:44px;border-radius:8px;background:#fdf2f5;border:1px solid #f8bbd0;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 44px;overflow:hidden}
+  .v-thumb img{width:100%;height:100%;object-fit:cover}
+  .v-btn{min-height:44px;padding:0 12px;border-radius:6px;border:1px solid #ddd;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;color:#333}
+  .v-btn.bahaya{color:#c62828;border-color:#f3c1c1}
+  .pratinjau-bulat{width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #f8bbd0;background:#fdf2f5}
+  .foto-profil-baris{display:flex;align-items:center;gap:12px}
+  .kartu-id .ava-besar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  .chip-variasi .chip-var{cursor:pointer;font-family:inherit;text-align:left}
+  .chip-variasi .chip-var .vimg{width:30px;height:30px;border-radius:8px;object-fit:cover;margin-bottom:4px}
   .chip-variasi button:disabled{opacity:.45;cursor:not-allowed}
   .baris-variasi .v-hapus{flex:0 0 44px;min-height:44px;border-radius:6px;border:1px solid #ef9a9a;background:#fff;color:#c62828;font-size:15px;cursor:pointer}
   .petunjuk{font-size:11.5px;color:var(--teks2);line-height:1.5;margin-top:6px}
@@ -375,6 +386,16 @@
         <div class="grup"><label>Tim / Unit</label><input id="l-tim" placeholder="cth. Tim MPPP"></div>
         <div class="grup"><label>Ruangan / Lokasi Ambil</label><input id="l-ruang" placeholder="cth. Lantai 3, dekat pantry"></div>
         <div class="grup"><label>Nomor Rekening <small>(untuk pembayaran Transfer)</small></label><input id="l-rek" placeholder="cth. Mandiri 1370011223344"></div>
+        <div class="grup"><label>Foto Profil Toko</label>
+          <div class="foto-profil-baris">
+            <img class="pratinjau-bulat" id="l-foto-img" alt="Foto profil toko" style="display:none">
+            <div>
+              <input type="file" id="l-foto" accept="image/*">
+              <button type="button" class="btn-kecil" id="l-foto-hapus" style="display:none;margin-top:6px">Hapus Foto</button>
+            </div>
+          </div>
+          <p class="petunjuk">Foto ini tampil sebagai gambar profil tokomu di kartu jualan dan halaman toko.</p>
+        </div>
         <div class="grup"><label>Gambar QRIS <small>(untuk pembayaran QRIS)</small></label>
           <input type="file" id="l-qris" accept="image/*">
           <img class="pratinjau" id="l-qris-img" alt="Pratinjau QRIS">
@@ -394,6 +415,10 @@
     <div class="blok" id="pj-bungkus-pesanan" style="display:none">
       <h3>Pesanan Masuk</h3>
       <p class="sub">Pesanan terbaru tampil paling atas. Majukan statusnya supaya pembeli tahu kabarnya.</p>
+      <div class="saring-bayar" id="saring-selesai">
+        <button data-tampil="aktif" class="aktif">Pesanan Masuk</button>
+        <button data-tampil="selesai">Pesanan Selesai</button>
+      </div>
       <div class="saring-bayar" id="saring-bayar">
         <button data-saring="semua" class="aktif">Semua</button>
         <button data-saring="belum">Belum Bayar</button>
@@ -478,12 +503,13 @@
         <div class="grup"><label>Variasi <small>(opsional — harga boleh berbeda per variasi)</small></label>
           <div id="pr-variasi"></div>
           <button type="button" class="btn-kecil" id="pr-variasi-tambah">＋ Tambah Variasi</button>
-          <p class="petunjuk">Kosongkan bila jualanmu tidak punya variasi. Bila diisi, pembeli wajib memilih satu variasi dan harga mengikuti variasi yang dipilih. Stok bisa diisi per variasi pada kolom Stok di tiap baris: variasi yang stoknya diisi berkurang sendiri setiap dipesan, sedangkan variasi yang stoknya dikosongkan mengikuti stok produk di atas.</p>
+          <p class="petunjuk">Kosongkan bila jualanmu tidak punya variasi. Bila diisi, pembeli wajib memilih satu variasi dan harga mengikuti variasi yang dipilih. Stok bisa diisi per variasi pada kolom Stok di tiap baris: variasi yang stoknya diisi berkurang sendiri setiap dipesan, sedangkan variasi yang stoknya dikosongkan mengikuti stok produk di atas. Tiap variasi juga bisa diberi foto sendiri lewat tombol Kamera atau Galeri di barisnya; foto itu tampil ke pembeli saat variasi dipilih.</p>
         </div>
         <div class="grup"><label>Mode Jualan</label>
           <select id="pr-mode"><option value="READY">Ready (langsung tersedia)</option><option value="PO">Pre-Order (PO)</option></select>
         </div>
         <div id="pr-grup-po" style="display:none">
+          <p class="petunjuk">Untuk mode PO, Stok / Kuota di atas adalah batas jumlah pesanan: kuota berkurang setiap ada pesanan masuk dan PO tertutup otomatis saat kuota habis. Isi 0 bila PO-mu tanpa batas.</p>
           <div class="grup"><label>PO Dibuka</label><input id="pr-buka" placeholder="cth. Senin pukul 08.00"></div>
           <div class="grup"><label>PO Ditutup</label><input id="pr-tutup" placeholder="cth. Rabu pukul 15.00"></div>
           <div class="grup"><label>Hari Pengambilan</label><input id="pr-ambil" placeholder="cth. Kamis, di pantry lantai 1"></div>
@@ -508,7 +534,7 @@
     <div class="desk" id="d-desk"></div>
     <div id="d-penilaian"></div>
     <div class="penjual-box">
-      <div class="ava"><img src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Logo Altafia"></div>
+      <div class="ava"><img id="d-ava-img" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Foto profil toko"></div>
       <div><b id="d-penjual"></b><span id="d-lokasi"></span></div>
       <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px">
         <button class="btn-kecil oranye" id="d-toko">🏪 Kunjungi Toko</button>
@@ -530,7 +556,7 @@
   <div class="kepala"><b>🏪 Halaman Toko</b><button class="x" data-tutup>✕</button></div>
   <div class="isi">
     <div class="penjual-box" style="margin-top:0">
-      <div class="ava"><img src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Logo Altafia"></div>
+      <div class="ava"><img id="t-ava-img" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Foto profil toko"></div>
       <div><b id="t-nama"></b><span id="t-lokasi"></span></div>
     </div>
     <div class="sub" style="font-weight:700;margin:14px 0 8px">Semua jualan toko ini</div>
@@ -1027,14 +1053,15 @@ function kartuHtml(p, kecil){
   const nilaiHtml = (p.penilaian && p.penilaian.jumlah)
     ? '<div class="penilaian"><b>★ ' + esc(p.penilaian.rata) + '</b> (' + p.penilaian.jumlah + ' ulasan)</div>' : '';
   if (kecil) {
-    const infoPo = p.tglAmbil ? 'Ambil: ' + esc(p.tglAmbil) : ('Stok: ' + esc(p.stok == null ? '–' : p.stok));
+    const infoPo = (p.tglAmbil ? 'Ambil: ' + esc(p.tglAmbil) : ('Stok: ' + esc(p.stok == null ? '–' : p.stok))) + ' · Terjual ' + (p.terjual || 0);
     return '<div class="foto ' + kelasWarna(p.nama) + '">' + fotoHtml(p.fotoUrl, p.nama) + lencanaMode + lencanaHabis + '</div>' +
       '<div class="isi-po"><div class="nm">' + esc(p.nama) + '</div><div class="harga">' + hargaTampil(p) + '</div>' + nilaiHtml + '<div class="kecil">' + infoPo + '</div></div>';
   }
+  const ikonLapak = (p.lapak && p.lapak.fotoUrl) || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
   return '<div class="foto ' + kelasWarna(p.nama) + '">' + fotoHtml(p.fotoUrl, p.nama) + lencanaMode + lencanaHabis + '</div>' +
     '<div class="isi"><div class="nm">' + esc(p.nama) + '</div><div class="harga">' + hargaTampil(p) + '</div>' + nilaiHtml +
-    '<div class="penjual"><img class="ic-lapak" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt=""> ' + esc(namaLapak) + '</div>' +
-    '<div class="meta"><span>' + (p.mode === 'PO' ? 'Pre-Order' : 'Ready') + '</span><span>Stok ' + esc(p.stok == null ? '–' : p.stok) + '</span></div>' +
+    '<div class="penjual"><img class="ic-lapak" src="' + esc(ikonLapak) + '" alt=""> ' + esc(namaLapak) + '</div>' +
+    '<div class="meta"><span>' + (p.mode === 'PO' ? 'Pre-Order' : 'Ready') + '</span><span>Stok ' + esc(p.stok == null ? '–' : p.stok) + '</span><span>Terjual ' + (p.terjual || 0) + '</span></div>' +
     '<button class="btn-order" ' + (habis ? 'disabled' : '') + '>' + (habis ? 'Stok Habis' : '🛒 Order') + '</button>' +
     '<button class="btn-keranjang" ' + (habis ? 'disabled' : '') + '>＋ Keranjang</button></div>';
 }
@@ -1171,7 +1198,12 @@ function isiDetail_(p, l, ulasan){
     const daftarVariasi = variasiProduk(p);
     if (daftarVariasi.length) {
       kotakVariasi.innerHTML = '<div class="sub" style="font-weight:700;margin:10px 0 6px">Pilihan Variasi</div><div class="chip-variasi">' +
-        daftarVariasi.map(v => '<span class="chip-info">' + esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b></span>').join('') + '</div>';
+        daftarVariasi.map(v => v.fotoUrl
+          ? '<button type="button" class="chip-info chip-var" data-foto-var="' + esc(v.fotoUrl) + '"><img class="vimg" src="' + esc(v.fotoUrl) + '" alt="">' + esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b></button>'
+          : '<span class="chip-info">' + esc(v.nama) + '<b>' + rp(v.harga) + labelStokVariasi_(v) + '</b></span>').join('') + '</div>';
+      kotakVariasi.querySelectorAll('[data-foto-var]').forEach(btn => btn.addEventListener('click', () => {
+        wadahFoto.innerHTML = fotoHtml(btn.dataset.fotoVar, p.nama);
+      }));
       kotakVariasi.style.display = '';
     } else {
       kotakVariasi.innerHTML = '';
@@ -1185,11 +1217,13 @@ function isiDetail_(p, l, ulasan){
     } else {
       meta = '✅ Ready · Stok: ' + esc(p.stok == null ? '–' : p.stok);
     }
+    meta += '<br>Terjual: ' + (p.terjual || 0);
     if (p.status === 'HABIS') meta += '<br>⚠️ Stok sedang habis, belum bisa diorder.';
     $('d-meta').innerHTML = meta;
     $('d-desk').textContent = p.deskripsi || 'Penjual belum menulis deskripsi.';
     $('d-penjual').textContent = l.nama || '';
     $('d-lokasi').textContent = [l.tim, l.ruangan].filter(Boolean).join(' · ');
+    $('d-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
     $('d-tanya').style.display = l.id ? '' : 'none';
     const tombolOrder = $('d-order');
     if (p.status === 'HABIS') { tombolOrder.disabled = true; tombolOrder.textContent = 'Stok Habis'; }
@@ -1245,6 +1279,7 @@ function bukaToko(lapakLangsung){
   tokoAktif = l;
   $('t-nama').textContent = l.nama || 'Toko Penjual';
   $('t-lokasi').textContent = [l.tim, l.ruangan].filter(Boolean).join(' · ');
+  $('t-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
   const daftar = semuaProduk.filter(p => p.lapak && p.lapak.id === l.id);
   const wadah = $('t-produk');
   wadah.innerHTML = '';
@@ -1284,7 +1319,7 @@ document.querySelectorAll('#pj-bungkus-menu .mi').forEach(b => b.addEventListene
   else if (menu === 'toko') {
     const lk = (profilCache && profilCache.lapak) || null;
     if (!lk || !lk.id) { toast('Profil lapak belum lengkap.'); return; }
-    bukaToko({ id: lk.id, nama: lk.nama, tim: lk.tim, ruangan: lk.ruangan, noWa: lk.noWa });
+    bukaToko({ id: lk.id, nama: lk.nama, tim: lk.tim, ruangan: lk.ruangan, noWa: lk.noWa, fotoUrl: lk.fotoUrl });
   }
 }));
 $('pj-kartu-id').addEventListener('click', () => gulirKeBlok_('pj-bungkus-profil'));
@@ -1416,6 +1451,8 @@ function bukaOrder(p){
 }
 function pilihVariasi(v, tombol){
   if (!orderKtx) return;
+  const wfO = $('o-foto');
+  if (wfO && orderKtx.produk) wfO.innerHTML = fotoHtml(v.fotoUrl || orderKtx.produk.fotoUrl, orderKtx.produk.nama);
   orderKtx.variasi = v.nama;
   orderKtx.variasiObj = v;
   orderKtx.hargaSatuan = Number(v.harga) || 0;
@@ -1590,6 +1627,8 @@ function bukaTambahKeranjang(p){
 }
 function pilihVariasiTambah(v, tombol){
   if (!tambahKtx) return;
+  const wfT = $('tk-foto');
+  if (wfT && tambahKtx.produk) wfT.innerHTML = fotoHtml(v.fotoUrl || tambahKtx.produk.fotoUrl, tambahKtx.produk.nama);
   tambahKtx.variasi = v.nama;
   tambahKtx.variasiObj = v;
   tambahKtx.hargaSatuan = Number(v.harga) || 0;
@@ -1945,6 +1984,8 @@ $('pj-keluar').addEventListener('click', async () => {
 /* ================= Halaman penjual ================= */
 let profilCache = null;
 let qrisData = null;   /* {base64, mime} dari berkas QRIS yang baru dipilih */
+let fotoProfilData = null;   /* {base64, mime} foto profil toko yang baru dipilih */
+let fotoProfilHapus = false; /* foto profil lama diminta dihapus */
 let fotoData = null;   /* {base64, mime} dari berkas foto produk yang baru dipilih */
 function bacaSebagaiBase64(berkas, selesai, mimePaksa){
   const pembaca = new FileReader();
@@ -1999,6 +2040,25 @@ $('l-qris').addEventListener('change', e => {
     }
   });
 });
+$('l-foto').addEventListener('change', e => {
+  bacaBerkasBase64(e.target, hasil => {
+    fotoProfilData = hasil;
+    if (hasil) {
+      fotoProfilHapus = false;
+      const img = $('l-foto-img');
+      img.src = 'data:' + hasil.mime + ';base64,' + hasil.base64;
+      img.style.display = 'block';
+      $('l-foto-hapus').style.display = '';
+    }
+  });
+});
+$('l-foto-hapus').addEventListener('click', () => {
+  fotoProfilData = null;
+  fotoProfilHapus = true;
+  $('l-foto').value = '';
+  $('l-foto-img').style.display = 'none';
+  $('l-foto-hapus').style.display = 'none';
+});
 $('pr-foto').addEventListener('change', e => {
   bacaBerkasBase64(e.target, hasil => {
     fotoData = hasil;
@@ -2022,7 +2082,11 @@ async function muatProfil(sesudah){
     const lapak = data.lapak;
     const namaTampil = lapak ? (lapak.nama || '') : (pg.nama || sesi.nama || '');
     $('pj-lapak-nama').textContent = namaTampil || 'Lapak Saya';
-    $('pj-ava').textContent = (namaTampil || 'L').trim().charAt(0).toUpperCase() || 'L';
+    if (lapak && lapak.fotoUrl) {
+      $('pj-ava').innerHTML = '<img src="' + esc(lapak.fotoUrl) + '" alt="Foto profil toko">';
+    } else {
+      $('pj-ava').textContent = (namaTampil || 'L').trim().charAt(0).toUpperCase() || 'L';
+    }
     $('pj-pemilik').textContent = lapak
       ? [pg.nama || sesi.nama || '', lapak.tim, lapak.ruangan].filter(Boolean).join(' · ')
       : 'Belum punya lapak — lengkapi profil di bawah untuk mulai berjualan';
@@ -2041,7 +2105,9 @@ async function muatProfil(sesudah){
       const ringkas = $('pj-ringkas-profil');
       ringkas.style.display = '';
       ringkas.innerHTML =
-        '<div class="item"><div class="nm">' + esc(lapak.nama || lapak.namaLapak || '') + '</div>' +
+        '<div class="item">' +
+        (lapak.fotoUrl ? '<img class="pratinjau-bulat" style="display:block;margin-bottom:8px" src="' + esc(lapak.fotoUrl) + '" alt="Foto profil toko">' : '') +
+        '<div class="nm">' + esc(lapak.nama || lapak.namaLapak || '') + '</div>' +
         '<div class="info">WhatsApp: ' + esc(waIndo(lapak.noWa) || '–') + '<br>Tim: ' + esc(lapak.tim || '–') + ' · Ruangan: ' + esc(lapak.ruangan || '–') + '<br>Rekening: ' + esc(lapak.noRekening || '–') + '</div>' +
         (lapak.qrisUrl ? '<img class="pratinjau" style="display:block" src="' + esc(lapak.qrisUrl) + '" alt="QRIS lapak">' : '<div class="info">QRIS belum diunggah.</div>') +
         '<div class="aksi"><button type="button" class="btn-kecil" id="pj-ubah-profil">Ubah Profil</button></div></div>';
@@ -2064,8 +2130,12 @@ async function muatProfil(sesudah){
 }
 function isiFormLapak(lapak, pg){
   qrisData = null;
+  fotoProfilData = null;
+  fotoProfilHapus = false;
   $('l-qris').value = '';
+  $('l-foto').value = '';
   const img = $('l-qris-img');
+  const imgFoto = $('l-foto-img');
   if (lapak) {
     $('l-nama').value = lapak.nama || lapak.namaLapak || '';
     $('l-wa').value = waIndo(lapak.noWa);
@@ -2073,10 +2143,13 @@ function isiFormLapak(lapak, pg){
     $('l-ruang').value = lapak.ruangan || '';
     $('l-rek').value = lapak.noRekening || '';
     if (lapak.qrisUrl) { img.src = lapak.qrisUrl; img.style.display = 'block'; } else { img.style.display = 'none'; }
+    if (lapak.fotoUrl) { imgFoto.src = lapak.fotoUrl; imgFoto.style.display = 'block'; $('l-foto-hapus').style.display = ''; }
+    else { imgFoto.style.display = 'none'; $('l-foto-hapus').style.display = 'none'; }
   } else {
     $('l-nama').value = ''; $('l-wa').value = waIndo(pg && pg.noWa);
     $('l-tim').value = (pg && pg.tim) || ''; $('l-ruang').value = ''; $('l-rek').value = '';
     img.style.display = 'none';
+    imgFoto.style.display = 'none'; $('l-foto-hapus').style.display = 'none';
   }
   tampilGalat('l-galat', '');
 }
@@ -2090,6 +2163,8 @@ $('form-lapak').addEventListener('submit', async e => {
     tim: $('l-tim').value.trim(), ruangan: $('l-ruang').value.trim(), noRekening: $('l-rek').value.trim()
   };
   if (qrisData) { kirim.qrisBase64 = qrisData.base64; kirim.qrisMime = qrisData.mime; }
+  if (fotoProfilData) { kirim.fotoBase64 = fotoProfilData.base64; kirim.fotoMime = fotoProfilData.mime; }
+  else if (fotoProfilHapus) { kirim.fotoHapus = true; }
   const tombol = e.target.querySelector('button[type="submit"]');
   tombol.disabled = true; tombol.textContent = 'Menyimpan…';
   try {
@@ -2188,20 +2263,53 @@ async function ubahStatusProduk(idProduk, status){
 }
 $('pj-tambah-produk').addEventListener('click', () => bukaFormProduk(null));
 /* ---------- Editor variasi di formulir produk ---------- */
-function tambahBarisVariasi(nama, harga, stok){
+function tambahBarisVariasi(nama, harga, stok, fotoId, fotoUrl){
   const wadah = $('pr-variasi');
   if (wadah.children.length >= 10) { toast('Variasi maksimal 10 pilihan.'); return; }
   const d = document.createElement('div');
   d.className = 'baris-variasi';
-  d.innerHTML = '<input class="v-nama" placeholder="Nama variasi, cth. Besar" maxlength="40">' +
+  d._fotoId = fotoId || '';
+  d._fotoData = null;
+  d._fotoHapus = false;
+  d.innerHTML = '<div class="v-atas"><input class="v-nama" placeholder="Nama variasi, cth. Besar" maxlength="40">' +
     '<input class="v-harga" type="number" min="0" inputmode="numeric" placeholder="Harga Rp">' +
     '<input class="v-stok" type="number" inputmode="numeric" placeholder="Stok" title="Stok variasi ini (kosongkan untuk mengikuti stok produk)">' +
-    '<button type="button" class="v-hapus" title="Hapus variasi ini">✕</button>';
+    '<button type="button" class="v-hapus" title="Hapus variasi ini">✕</button></div>' +
+    '<div class="v-foto"><span class="v-thumb">🖼️</span>' +
+    '<button type="button" class="v-btn" data-vk="kamera">📷 Kamera</button>' +
+    '<button type="button" class="v-btn" data-vk="galeri">🖼️ Galeri</button>' +
+    '<button type="button" class="v-btn bahaya" data-vk="hapus" style="display:none">Hapus Foto</button>' +
+    '<input type="file" accept="image/*" capture="environment" hidden data-vf="kamera">' +
+    '<input type="file" accept="image/*" hidden data-vf="galeri"></div>';
   d.querySelector('.v-nama').value = nama || '';
   if (harga != null && harga !== '') d.querySelector('.v-harga').value = harga;
   if (stok != null && stok !== '') d.querySelector('.v-stok').value = stok;
+  const thumb = d.querySelector('.v-thumb');
+  const btnHapusFoto = d.querySelector('[data-vk="hapus"]');
+  const segarkanThumb = () => {
+    if (d._fotoData) {
+      thumb.innerHTML = '<img src="data:' + d._fotoData.mime + ';base64,' + d._fotoData.base64 + '" alt="Foto variasi">';
+      btnHapusFoto.style.display = '';
+    } else if (d._fotoHapus || !d._fotoId) {
+      thumb.innerHTML = '🖼️';
+      btnHapusFoto.style.display = 'none';
+    } else {
+      thumb.innerHTML = '<img src="' + esc(fotoUrl || '') + '" alt="Foto variasi">';
+      btnHapusFoto.style.display = '';
+    }
+  };
+  d.querySelectorAll('[data-vf]').forEach(inp => inp.addEventListener('change', () => {
+    bacaBerkasBase64(inp, hasil => {
+      if (hasil) { d._fotoData = hasil; d._fotoHapus = false; segarkanThumb(); }
+      inp.value = '';
+    });
+  }));
+  d.querySelector('[data-vk="kamera"]').addEventListener('click', () => d.querySelector('[data-vf="kamera"]').click());
+  d.querySelector('[data-vk="galeri"]').addEventListener('click', () => d.querySelector('[data-vf="galeri"]').click());
+  btnHapusFoto.addEventListener('click', () => { d._fotoData = null; d._fotoHapus = true; segarkanThumb(); });
   d.querySelector('.v-hapus').addEventListener('click', () => d.remove());
   wadah.appendChild(d);
+  segarkanThumb();
 }
 /* Kumpulkan variasi dari formulir. Baris yang dua-duanya kosong diabaikan;
    baris terisi separuh dikembalikan sebagai tidak sah supaya ditolak dgn pesan jelas. */
@@ -2217,6 +2325,9 @@ function kumpulkanVariasi(){
     if (stokMentah !== '' && !/^\d+$/.test(stokMentah)) { adaYangSeparuh = true; return; }
     const item = { nama: nama, harga: parseInt(mentah, 10) };
     if (stokMentah !== '') item.stok = parseInt(stokMentah, 10);
+    if (b._fotoData) { item.fotoBase64 = b._fotoData.base64; item.fotoMime = b._fotoData.mime; }
+    else if (b._fotoHapus) { item.hapusFoto = true; if (b._fotoId) item.fotoId = b._fotoId; }
+    else if (b._fotoId) item.fotoId = b._fotoId;
     hasil.push(item);
   });
   return adaYangSeparuh ? null : hasil;
@@ -2242,7 +2353,7 @@ function bukaFormProduk(p){
   $('pr-ambil').value = p ? (p.tglAmbil || '') : '';
   $('pr-desk').value = p ? (p.deskripsi || '') : '';
   $('pr-variasi').innerHTML = '';
-  if (p && Array.isArray(p.variasi)) p.variasi.forEach(v => tambahBarisVariasi(v.nama, v.harga, v.stok));
+  if (p && Array.isArray(p.variasi)) p.variasi.forEach(v => tambahBarisVariasi(v.nama, v.harga, v.stok, v.fotoId, v.fotoUrl));
   if (p && p.fotoUrl) { img.src = p.fotoUrl; img.style.display = 'block'; } else { img.style.display = 'none'; }
   $('pr-grup-po').style.display = $('pr-mode').value === 'PO' ? '' : 'none';
   tampilGalat('pr-galat', '');
@@ -2291,6 +2402,7 @@ const LANGKAH_BERIKUT = {
 };
 let pesananMasukCache = [];
 let saringBayar = 'semua';
+let tampilPesanan = 'aktif'; /* 'aktif' = pesanan berjalan; 'selesai' = semua pesanan SELESAI dijadikan satu */
 function bayarGrup_(items){
   const aktif = items.filter(o => o.status !== 'BATAL');
   if (!aktif.length) return 'BATAL';
@@ -2317,6 +2429,15 @@ function gambarPesananMasuk_(){
     if (b === 'BELUM' || b === 'SEBAGIAN') nBelum++;
     else if (b === 'LUNAS') nLunas++;
   });
+  let nSelesai = 0, nAktif = 0;
+  grupMap.forEach(items => {
+    if (statusGrupPesanan_(items) === 'SELESAI') nSelesai++; else nAktif++;
+  });
+  document.querySelectorAll('#saring-selesai button').forEach(btn => {
+    const k = btn.dataset.tampil;
+    btn.classList.toggle('aktif', k === tampilPesanan);
+    btn.textContent = k === 'selesai' ? 'Pesanan Selesai (' + nSelesai + ')' : 'Pesanan Masuk (' + nAktif + ')';
+  });
   document.querySelectorAll('#saring-bayar button').forEach(btn => {
     const k = btn.dataset.saring;
     btn.classList.toggle('aktif', k === saringBayar);
@@ -2328,6 +2449,9 @@ function gambarPesananMasuk_(){
   }
   let tampil = 0;
   grupMap.forEach(items => {
+    const sg = statusGrupPesanan_(items);
+    if (tampilPesanan === 'selesai' && sg !== 'SELESAI') return;
+    if (tampilPesanan === 'aktif' && sg === 'SELESAI') return;
     const b = bayarGrup_(items);
     if (saringBayar === 'belum' && !(b === 'BELUM' || b === 'SEBAGIAN')) return;
     if (saringBayar === 'lunas' && b !== 'LUNAS') return;
@@ -2335,11 +2459,27 @@ function gambarPesananMasuk_(){
     tampil++;
   });
   if (!tampil) {
-    wadah.innerHTML = '<p class="sub">' + (saringBayar === 'lunas' ? 'Belum ada pesanan yang sudah dibayar.' : 'Tidak ada pesanan yang belum dibayar. Semua lunas 🎉') + '</p>';
+    let pesanKosong;
+    if (tampilPesanan === 'selesai') {
+      pesanKosong = saringBayar === 'belum' ? 'Belum ada pesanan selesai yang belum dibayar.' : 'Belum ada pesanan yang selesai.';
+    } else if (saringBayar === 'lunas') {
+      pesanKosong = 'Belum ada pesanan aktif yang sudah dibayar.';
+    } else if (saringBayar === 'belum') {
+      pesanKosong = 'Tidak ada pesanan aktif yang belum dibayar. Semua lunas 🎉';
+    } else {
+      pesanKosong = nSelesai > 0
+        ? 'Semua pesanan sudah selesai. Lihat lewat tombol Pesanan Selesai di atas.'
+        : 'Belum ada pesanan masuk. Pesanan pembeli akan tampil di sini.';
+    }
+    wadah.innerHTML = '<p class="sub">' + pesanKosong + '</p>';
   }
 }
 document.querySelectorAll('#saring-bayar button').forEach(btn => btn.addEventListener('click', () => {
   saringBayar = btn.dataset.saring;
+  gambarPesananMasuk_();
+}));
+document.querySelectorAll('#saring-selesai button').forEach(btn => btn.addEventListener('click', () => {
+  tampilPesanan = btn.dataset.tampil;
   gambarPesananMasuk_();
 }));
 async function muatPesananSaya(){
