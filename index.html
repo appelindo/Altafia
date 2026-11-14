@@ -325,7 +325,8 @@
   /* ===== Layar sambutan Rasotik (v1.13) ===== */
   #sambutan{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#f06292,#e91e63 55%,#c2185b);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;transition:opacity .45s ease}
   #sambutan.pergi{opacity:0;pointer-events:none}
-  #sambutan .logo-sambut{width:132px;height:132px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:0 18px 44px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.35);animation:sambutMasuk .8s cubic-bezier(.22,1.35,.36,1) both}
+  #sambutan .logo-sambut{width:132px;height:132px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:0 18px 44px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.35);opacity:0}
+  #sambutan .logo-sambut.muat{animation:sambutMasuk .8s cubic-bezier(.22,1.35,.36,1) both}
   #sambutan .judul-sambut{color:#fff;font-size:31px;font-weight:900;letter-spacing:.01em;text-shadow:0 2px 10px rgba(0,0,0,.25);animation:sambutNaik .6s .3s ease both}
   #sambutan .sub-sambut{color:#ffe3ef;font-size:14.5px;font-weight:600;line-height:1.55;animation:sambutNaik .6s .5s ease both}
   @keyframes sambutMasuk{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
@@ -3131,14 +3132,22 @@ if (kodePesananTersimpan().length) tarikPesananSaya().catch(() => {});
   if (params.has('masuk') && !sesi) bukaLembar('lembar-login');
 })();
 
-/* Layar sambutan: hilang sendiri sesudah animasi; ketuk untuk melewati. */
+/* Layar sambutan: hitungan hilang mulai sesudah logo termuat (maks 4,5 dtk),
+   ketuk untuk melewati. */
 (() => {
   const s = document.getElementById('sambutan');
   if (!s) return;
-  let hilang = false;
+  const img = s.querySelector('.logo-sambut');
+  let hilang = false, hitungMulai = false;
   const tutup = () => { if (hilang) return; hilang = true; s.classList.add('pergi'); setTimeout(() => { try { s.remove(); } catch (e) {} }, 500); };
+  const mulaiHitung = () => { if (hitungMulai) return; hitungMulai = true; setTimeout(tutup, 1500); };
+  if (img) {
+    const siap = () => { img.classList.add('muat'); mulaiHitung(); };
+    if (img.complete && img.naturalWidth > 0) siap();
+    else { img.addEventListener('load', siap); img.addEventListener('error', mulaiHitung); }
+  } else mulaiHitung();
   s.addEventListener('click', tutup);
-  setTimeout(tutup, 2000);
+  setTimeout(tutup, 4500);
 })();
 </script>
 </body>
