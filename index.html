@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Altafia — Toko Online</title>
-<meta name="description" content="Altafia — pesan pempek & tekwan asli Palembang secara online. Bayar Transfer atau QRIS, ambil di tempat.">
+<title>Rasotik — Toko Online</title>
+<meta name="description" content="Rasotik — pesan pempek & tekwan asli Palembang secara online. Rasonyo wong kito, makanan khas Palembang. Bayar Transfer atau QRIS, ambil di tempat.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Altafia">
-<meta property="og:title" content="Altafia — Pempek & Tekwan Asli Palembang">
-<meta property="og:description" content="Pesan pempek & tekwan asli Palembang secara online. Bayar Transfer atau QRIS, ambil di tempat.">
-<meta property="og:image" content="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w1200">
+<meta property="og:site_name" content="Rasotik">
+<meta property="og:title" content="Rasotik — Pempek & Tekwan Asli Palembang">
+<meta property="og:description" content="Pesan pempek & tekwan asli Palembang secara online. Rasonyo wong kito, makanan khas Palembang. Bayar Transfer atau QRIS, ambil di tempat.">
+<meta property="og:image" content="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w1200">
 <meta property="og:url" content="https://appelindo.github.io/Altafia/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400">
-<link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400">
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400">
+<link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400">
 <style>
   :root{
     --oranye:#e91e63; --oranye2:#f06292; --oranye-muda:#fdeef4;
@@ -321,15 +321,30 @@
 
   .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#222;color:#fff;padding:11px 18px;border-radius:22px;font-size:13px;z-index:70;opacity:0;transition:.25s;pointer-events:none;max-width:88vw;text-align:center;line-height:1.45}
   .toast.tampil{opacity:1}
+
+  /* ===== Layar sambutan Rasotik (v1.13) ===== */
+  #sambutan{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#f06292,#e91e63 55%,#c2185b);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;transition:opacity .45s ease}
+  #sambutan.pergi{opacity:0;pointer-events:none}
+  #sambutan .logo-sambut{width:132px;height:132px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:0 18px 44px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.35);animation:sambutMasuk .8s cubic-bezier(.22,1.35,.36,1) both}
+  #sambutan .judul-sambut{color:#fff;font-size:31px;font-weight:900;letter-spacing:.01em;text-shadow:0 2px 10px rgba(0,0,0,.25);animation:sambutNaik .6s .3s ease both}
+  #sambutan .sub-sambut{color:#ffe3ef;font-size:14.5px;font-weight:600;line-height:1.55;animation:sambutNaik .6s .5s ease both}
+  @keyframes sambutMasuk{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+  @keyframes sambutNaik{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){#sambutan{display:none}}
 </style>
 </head>
 <body>
+<div id="sambutan" aria-label="Selamat datang di Rasotik">
+  <img class="logo-sambut" src="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400" alt="Logo Rasotik">
+  <div class="judul-sambut">Selamat Datang</div>
+  <div class="sub-sambut">di <b>Rasotik</b><br>Rasonyo Wong Kito, Makanan Khas Palembang</div>
+</div>
 <div class="hp">
 
   <!-- ======== TAMPILAN BERANDA ======== -->
   <div id="view-beranda">
     <header>
-      <div class="nama-toko"><div class="merek"><img class="logo" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Logo Altafia"><div>Altafia<small>Belanja mudah, langsung dari penjualnya</small></div></div><span class="bebas">Tanpa login untuk pembeli</span></div>
+      <div class="nama-toko"><div class="merek"><img class="logo" src="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400" alt="Logo Rasotik"><div>Rasotik<small>Rasonyo Wong Kito, Makanan Khas Palembang</small></div></div><span class="bebas">Tanpa login untuk pembeli</span></div>
       <div class="baris-atas">
         <div class="cari">🔍<input id="kotak-cari" placeholder="Cari makanan…"></div>
         <button class="btn-masuk" id="btn-masuk" style="display:none">Masuk Penjual</button>
@@ -407,7 +422,7 @@
 
     <div class="blok" id="pj-bungkus-produk" style="display:none">
       <h3>Produk Saya</h3>
-      <p class="sub">Jualan yang kamu tayang di katalog Altafia.</p>
+      <p class="sub">Jualan yang kamu tayang di katalog Rasotik.</p>
       <div id="daftar-produk-saya"><p class="sub">Memuat…</p></div>
       <button class="btn-kecil oranye" id="pj-tambah-produk" style="width:100%">＋ Tambah Jualan</button>
     </div>
@@ -430,10 +445,10 @@
 
   <!-- ======== TAMPILAN ADMIN ======== -->
   <div id="view-admin" style="display:none">
-    <div class="bar-view"><button class="btn-kembali" data-nav="beranda">‹ Beranda</button><b>Admin Altafia</b></div>
+    <div class="bar-view"><button class="btn-kembali" data-nav="beranda">‹ Beranda</button><b>Admin Rasotik</b></div>
     <div class="blok">
       <h3>Ringkasan</h3>
-      <p class="sub">Keadaan Altafia saat ini.</p>
+      <p class="sub">Keadaan Rasotik saat ini.</p>
       <div class="angka-grid">
         <div class="angka"><b id="ad-lapak">–</b><span>Lapak aktif</span></div>
         <div class="angka"><b id="ad-produk">–</b><span>Produk tayang</span></div>
@@ -534,7 +549,7 @@
     <div class="desk" id="d-desk"></div>
     <div id="d-penilaian"></div>
     <div class="penjual-box">
-      <div class="ava"><img id="d-ava-img" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Foto profil toko"></div>
+      <div class="ava"><img id="d-ava-img" src="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400" alt="Foto profil toko"></div>
       <div><b id="d-penjual"></b><span id="d-lokasi"></span></div>
       <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px">
         <button class="btn-kecil oranye" id="d-toko">🏪 Kunjungi Toko</button>
@@ -556,7 +571,7 @@
   <div class="kepala"><b>🏪 Halaman Toko</b><button class="x" data-tutup>✕</button></div>
   <div class="isi">
     <div class="penjual-box" style="margin-top:0">
-      <div class="ava"><img id="t-ava-img" src="https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400" alt="Foto profil toko"></div>
+      <div class="ava"><img id="t-ava-img" src="https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400" alt="Foto profil toko"></div>
       <div><b id="t-nama"></b><span id="t-lokasi"></span></div>
     </div>
     <div class="sub" style="font-weight:700;margin:14px 0 8px">Semua jualan toko ini</div>
@@ -573,7 +588,7 @@
   <div class="pegangan"></div>
   <div class="kepala"><b>Laporkan Jualan</b><button class="x" data-tutup>✕</button></div>
   <div class="form">
-    <p style="font-size:12.5px;color:var(--teks2);line-height:1.55;margin-bottom:12px">Ceritakan alasannya; laporanmu diteruskan ke admin Altafia untuk ditinjau.</p>
+    <p style="font-size:12.5px;color:var(--teks2);line-height:1.55;margin-bottom:12px">Ceritakan alasannya; laporanmu diteruskan ke admin Rasotik untuk ditinjau.</p>
     <div class="grup"><label>Alasan laporan *</label><textarea id="lp-alasan" rows="3" placeholder="cth. foto tidak sesuai barang, harga tidak wajar, dll."></textarea></div>
     <div class="galat" id="lp-galat"></div>
   </div>
@@ -896,7 +911,7 @@ function bukaLembar(id){
   gelap.classList.add('buka');
   $(id).classList.add('buka');
   if (!lembarRiwayatAktif) {
-    try { history.pushState({ lembarAltafia: true }, ''); } catch (e) {}
+    try { history.pushState({ lembarRasotik: true }, ''); } catch (e) {}
     lembarRiwayatAktif = true;
   }
 }
@@ -1057,7 +1072,7 @@ function kartuHtml(p, kecil){
     return '<div class="foto ' + kelasWarna(p.nama) + '">' + fotoHtml(p.fotoUrl, p.nama) + lencanaMode + lencanaHabis + '</div>' +
       '<div class="isi-po"><div class="nm">' + esc(p.nama) + '</div><div class="harga">' + hargaTampil(p) + '</div>' + nilaiHtml + '<div class="kecil">' + infoPo + '</div></div>';
   }
-  const ikonLapak = (p.lapak && p.lapak.fotoUrl) || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
+  const ikonLapak = (p.lapak && p.lapak.fotoUrl) || 'https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400';
   return '<div class="foto ' + kelasWarna(p.nama) + '">' + fotoHtml(p.fotoUrl, p.nama) + lencanaMode + lencanaHabis + '</div>' +
     '<div class="isi"><div class="nm">' + esc(p.nama) + '</div><div class="harga">' + hargaTampil(p) + '</div>' + nilaiHtml +
     '<div class="penjual"><img class="ic-lapak" src="' + esc(ikonLapak) + '" alt=""> ' + esc(namaLapak) + '</div>' +
@@ -1223,7 +1238,7 @@ function isiDetail_(p, l, ulasan){
     $('d-desk').textContent = p.deskripsi || 'Penjual belum menulis deskripsi.';
     $('d-penjual').textContent = l.nama || '';
     $('d-lokasi').textContent = [l.tim, l.ruangan].filter(Boolean).join(' · ');
-    $('d-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
+    $('d-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400';
     $('d-tanya').style.display = l.id ? '' : 'none';
     const tombolOrder = $('d-order');
     if (p.status === 'HABIS') { tombolOrder.disabled = true; tombolOrder.textContent = 'Stok Habis'; }
@@ -1279,7 +1294,7 @@ function bukaToko(lapakLangsung){
   tokoAktif = l;
   $('t-nama').textContent = l.nama || 'Toko Penjual';
   $('t-lokasi').textContent = [l.tim, l.ruangan].filter(Boolean).join(' · ');
-  $('t-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1NwjJD15eq3MjKTd95TN_rqRjvgFEf8v3&sz=w400';
+  $('t-ava-img').src = l.fotoUrl || 'https://drive.google.com/thumbnail?id=1l_bwXy_Lo-GM6tJhd2lrlO2OzicvqSqL&sz=w400';
   const daftar = semuaProduk.filter(p => p.lapak && p.lapak.id === l.id);
   const wadah = $('t-produk');
   wadah.innerHTML = '';
@@ -1300,7 +1315,7 @@ function bukaToko(lapakLangsung){
   const tombolChat = $('t-chat');
   if (l.noWa) {
     tombolChat.style.display = '';
-    tombolChat.onclick = () => window.open(tautanWa(l.noWa, 'Halo ' + (l.nama || 'penjual') + ', saya melihat toko Anda di Altafia.'), '_blank');
+    tombolChat.onclick = () => window.open(tautanWa(l.noWa, 'Halo ' + (l.nama || 'penjual') + ', saya melihat toko Anda di Rasotik.'), '_blank');
   } else {
     tombolChat.style.display = 'none';
   }
@@ -1324,12 +1339,23 @@ document.querySelectorAll('#pj-bungkus-menu .mi').forEach(b => b.addEventListene
 }));
 $('pj-kartu-id').addEventListener('click', () => gulirKeBlok_('pj-bungkus-profil'));
 function perbaruiMenuPenjual_(daftar){
-  const hitung = s => daftar.filter(o => o.status === s).length;
+  // Angka strip dihitung per customer (per grup checkout), bukan per barang:
+  // satu customer yang memesan banyak barang tetap dihitung satu pesanan.
+  // Status grup mengikuti statusGrupPesanan_ (barang paling awal dalam grup).
+  const grupMap = new Map();
+  (Array.isArray(daftar) ? daftar : []).forEach(o => {
+    const kunci = o.grup || (o.idPesanan || o.id);
+    if (!grupMap.has(kunci)) grupMap.set(kunci, []);
+    grupMap.get(kunci).push(o);
+  });
+  const statusSemua = [];
+  grupMap.forEach(items => statusSemua.push(statusGrupPesanan_(items)));
+  const hitung = s => statusSemua.filter(x => x === s).length;
   const perlu = hitung('TERKIRIM');
   $('mp-perlu').textContent = perlu;
   $('mp-siap').textContent = hitung('SIAP_DIAMBIL');
   $('mp-selesai').textContent = hitung('SELESAI');
-  $('mp-total').textContent = daftar.length;
+  $('mp-total').textContent = statusSemua.length;
   const lencana = $('mp-lencana');
   lencana.textContent = perlu;
   lencana.style.display = perlu ? '' : 'none';
@@ -1347,7 +1373,7 @@ $('d-tanya').addEventListener('click', async () => {
     } catch (e) { /* diperiksa di bawah */ }
   }
   if (!l.noWa) { toast('Nomor WhatsApp penjual belum tersedia.'); return; }
-  const pesan = 'Halo ' + (l.nama || 'penjual') + ', saya mau tanya stok dari Altafia.\n' +
+  const pesan = 'Halo ' + (l.nama || 'penjual') + ', saya mau tanya stok dari Rasotik.\n' +
     'Produk: ' + (produkAktif.nama || '') + '\n' +
     'Apakah stoknya masih tersedia? Terima kasih.';
   window.open(tautanWa(l.noWa, pesan), '_blank');
@@ -1388,9 +1414,9 @@ function tautanProduk(id){
 }
 async function bagikanProduk(p){
   const tautan = tautanProduk(p.id);
-  const teks = '*' + (p.nama || 'Jualan') + '* — ' + hargaTampil(p) + '\nDi Altafia • ' + ((p.lapak && p.lapak.nama) || 'Pempek & Tekwan');
+  const teks = '*' + (p.nama || 'Jualan') + '* — ' + hargaTampil(p) + '\nDi Rasotik • ' + ((p.lapak && p.lapak.nama) || 'Pempek & Tekwan');
   if (navigator.share) {
-    try { await navigator.share({ title: 'Altafia', text: teks, url: tautan }); } catch (e) {}
+    try { await navigator.share({ title: 'Rasotik', text: teks, url: tautan }); } catch (e) {}
   } else {
     const ok = await salinTeks(tautan);
     toast(ok ? 'Tautan produk tersalin. Tinggal tempel & kirim.' : 'Tautan: ' + tautan);
@@ -1400,9 +1426,9 @@ async function bagikanProduk(p){
 async function bagikanToko(){
   if (!tokoAktif || !tokoAktif.id) return;
   const tautan = location.origin + location.pathname + 'toko.html';
-  const teks = '*' + (tokoAktif.nama || 'Altafia') + '*\nPesan pempek & tekwan online di sini:';
+  const teks = '*' + (tokoAktif.nama || 'Rasotik') + '*\nPesan pempek & tekwan online di sini:';
   if (navigator.share) {
-    try { await navigator.share({ title: 'Altafia', text: teks, url: tautan }); } catch (e) {}
+    try { await navigator.share({ title: 'Rasotik', text: teks, url: tautan }); } catch (e) {}
   } else {
     const ok = await salinTeks(tautan);
     toast(ok ? 'Tautan toko tersalin. Tinggal tempel & kirim.' : 'Tautan: ' + tautan);
@@ -1546,7 +1572,7 @@ function tampilKonfirmasi(data, ktx){
   } else {
     kotak.innerHTML = '<h4>💵 Pembayaran Tunai</h4><p>Siapkan uang pas sebesar <b>' + rp(data.total) + '</b>, bayar langsung ke <b>' + esc(lapak.nama || 'penjual') + '</b> saat barang diambil, sesudah penjual mengonfirmasi pesananmu.</p>';
   }
-  const pesan = 'Halo ' + (lapak.nama || 'penjual') + ', saya baru saja order lewat Altafia.\n' +
+  const pesan = 'Halo ' + (lapak.nama || 'penjual') + ', saya baru saja order lewat Rasotik.\n' +
     'Kode pesanan: ' + (data.idPesanan || '-') + '\n' +
     'Barang: ' + (p.nama || '-') + '\n' +
     (ktx.variasi ? 'Variasi: ' + ktx.variasi + '\n' : '') +
@@ -1555,7 +1581,7 @@ function tampilKonfirmasi(data, ktx){
     'Pembayaran: ' + (LABEL_BAYAR[ktx.metode] || ktx.metode) + '\n' +
     'Mohon konfirmasinya, terima kasih.';
   // Tombol Selesai SEKALIGUS membuka WA penjual, baru menutup lembar —
-  // tidak ada tombol Chat terpisah (permintaan pemilik Altafia).
+  // tidak ada tombol Chat terpisah (permintaan pemilik Rasotik).
   $('k-selesai').onclick = () => {
     if (lapak.noWa) window.open(tautanWa(lapak.noWa, pesan), '_blank');
     tutupLembar();
@@ -1884,7 +1910,7 @@ function tampilKonfirmasiKeranjang(hasil, grupKode, metode, gagalItem){
   $('kk-selesai').onclick = () => {
     if (g0 && g0.lapak && g0.lapak.noWa) {
       const lapak = g0.lapak;
-      let pesan = 'Halo ' + (lapak.nama || g0.namaLapak) + ', saya baru checkout lewat Altafia.\nGrup checkout: ' + grupKode + '\n';
+      let pesan = 'Halo ' + (lapak.nama || g0.namaLapak) + ', saya baru checkout lewat Rasotik.\nGrup checkout: ' + grupKode + '\n';
       g0.pesanan.forEach(ps => { pesan += '- ' + ps.nama + (ps.variasi ? ' (' + ps.variasi + ')' : '') + ' \u00d7 ' + ps.jumlah + ' (' + ps.kode + ')\n'; });
       pesan += 'Total: ' + rp(g0.total) + '\nPembayaran: ' + (LABEL_BAYAR[metode] || metode) + '\nMohon konfirmasinya, terima kasih.';
       window.open(tautanWa(lapak.noWa, pesan), '_blank');
@@ -2550,8 +2576,8 @@ function kartuGrupPesanan_(items){
   d.innerHTML = html;
   const tombolChat = d.querySelector('[data-chat]');
   if (tombolChat) tombolChat.addEventListener('click', () => {
-    const namaLapakSaya = (profilCache && profilCache.lapak && profilCache.lapak.nama) || 'penjual Altafia';
-    let pesan = 'Halo ' + (pertama.namaPembeli || 'kak') + ', saya dari ' + namaLapakSaya + ' (Altafia).\n';
+    const namaLapakSaya = (profilCache && profilCache.lapak && profilCache.lapak.nama) || 'penjual Rasotik';
+    let pesan = 'Halo ' + (pertama.namaPembeli || 'kak') + ', saya dari ' + namaLapakSaya + ' (Rasotik).\n';
     items.forEach(o => {
       pesan += '- ' + (o.namaProduk || '') + (o.variasi ? ' (' + o.variasi + ')' : '') +
         ' × ' + (o.jumlah == null ? 1 : o.jumlah) + ' — ' + rp(o.total) + '\n';
@@ -2995,7 +3021,7 @@ function gambarPesananSaya(){
   });
   wadah.innerHTML = html;
   wadah.querySelectorAll('.ps-chat').forEach(b => b.addEventListener('click', () => {
-    const pesan = 'Halo ' + (b.dataset.lapak || 'penjual') + ', saya mau menanyakan pesanan saya di Altafia.\n' +
+    const pesan = 'Halo ' + (b.dataset.lapak || 'penjual') + ', saya mau menanyakan pesanan saya di Rasotik.\n' +
       'Kode: ' + b.dataset.kode + '\nTerima kasih.';
     window.open(tautanWa(b.dataset.wa, pesan), '_blank');
   }));
@@ -3078,7 +3104,7 @@ document.addEventListener('click', async (e) => {
     const blob = new Blob([bytes], { type: data.mime || 'image/png' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'QRIS-Altafia' + ((data.mime || '').indexOf('jpeg') >= 0 ? '.jpg' : '.png');
+    a.download = 'QRIS-Rasotik' + ((data.mime || '').indexOf('jpeg') >= 0 ? '.jpg' : '.png');
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -3103,6 +3129,16 @@ if (kodePesananTersimpan().length) tarikPesananSaya().catch(() => {});
   // Pintu masuk khusus pemilik: tombol Masuk disembunyikan dari pembeli,
   // pemilik membuka lembar masuk lewat tautan ?masuk.
   if (params.has('masuk') && !sesi) bukaLembar('lembar-login');
+})();
+
+/* Layar sambutan: hilang sendiri sesudah animasi; ketuk untuk melewati. */
+(() => {
+  const s = document.getElementById('sambutan');
+  if (!s) return;
+  let hilang = false;
+  const tutup = () => { if (hilang) return; hilang = true; s.classList.add('pergi'); setTimeout(() => { try { s.remove(); } catch (e) {} }, 500); };
+  s.addEventListener('click', tutup);
+  setTimeout(tutup, 2000);
 })();
 </script>
 </body>
