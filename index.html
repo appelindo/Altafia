@@ -116,6 +116,9 @@
   .saring-bayar{display:flex;gap:8px;margin-bottom:12px}
   .saring-bayar button{flex:1;min-height:42px;border-radius:999px;border:1.5px solid #ddd;background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:var(--teks2);cursor:pointer}
   .saring-bayar button.aktif{background:var(--oranye);border-color:var(--oranye);color:#fff}
+  #saring-status{flex-wrap:wrap}
+  #saring-status button{flex:1 1 42%}
+  .blok .kembali-halaman{margin-bottom:10px}
   /* Kartu grup pesanan masuk (satu kartu per pembeli/checkout) */
   .kgp-kepala{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .kgp-item{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--garis);align-items:flex-start}
@@ -308,11 +311,6 @@
   .kartu-id .nama-lapak{font-size:16.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .kartu-id .pemilik{color:#888;font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .kartu-id .panah{color:#bbb;font-size:20px;margin-left:auto}
-  .strip-angka{background:#fff;margin-top:10px;padding:13px 4px 11px;display:flex}
-  .strip-angka .sel{flex:1;text-align:center}
-  .strip-angka .n{font-size:20px;font-weight:800;line-height:1.1}
-  .strip-angka .n.aksi{color:var(--oranye)}
-  .strip-angka .l{font-size:10.5px;color:#888;margin-top:3px;line-height:1.3;padding:0 2px}
   .menu-grid{background:#fff;margin-top:10px;padding:13px 4px 11px;display:flex}
   .menu-grid .mi{flex:1;text-align:center;cursor:pointer;position:relative;background:none;border:none;font-family:inherit;padding:0}
   .menu-grid .ki{width:45px;height:45px;margin:0 auto;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
@@ -393,12 +391,6 @@
       <span class="panah">›</span>
     </div>
     <div id="pj-bungkus-menu" style="display:none">
-      <div class="strip-angka">
-        <div class="sel"><div class="n aksi" id="mp-perlu">0</div><div class="l">Perlu Konfirmasi</div></div>
-        <div class="sel"><div class="n" id="mp-siap">0</div><div class="l">Siap Diambil</div></div>
-        <div class="sel"><div class="n" id="mp-selesai">0</div><div class="l">Selesai</div></div>
-        <div class="sel"><div class="n" id="mp-total">0</div><div class="l">Total Pesanan</div></div>
-      </div>
       <div class="menu-grid">
         <button class="mi" data-menu="produk"><span class="ki" style="background:#fff1ec">📦</span><div class="ml">Produk Saya</div></button>
         <button class="mi" data-menu="pesanan"><span class="ki" style="background:#fdf3e0">🧾</span><div class="ml">Pesanan Masuk</div><span class="bdg" id="mp-lencana" style="display:none">0</span></button>
@@ -410,6 +402,7 @@
     </div>
 
     <div class="blok" id="pj-bungkus-profil">
+      <button class="btn-kembali kembali-halaman" id="pj-kembali-profil" data-pj-home style="display:none">‹ Lapak Saya</button>
       <h3 id="pj-judul-profil">Profil Lapak</h3>
       <p class="sub" id="pj-sub-profil">Lengkapi profil lapakmu sekali saja supaya bisa mulai berjualan.</p>
       <div id="pj-ringkas-profil" style="display:none"></div>
@@ -439,6 +432,7 @@
     </div>
 
     <div class="blok" id="pj-bungkus-produk" style="display:none">
+      <button class="btn-kembali kembali-halaman" data-pj-home>‹ Lapak Saya</button>
       <h3>Produk Saya</h3>
       <p class="sub">Jualan yang kamu tayang di katalog Rasotik.</p>
       <div id="daftar-produk-saya"><p class="sub">Memuat…</p></div>
@@ -446,11 +440,14 @@
     </div>
 
     <div class="blok" id="pj-bungkus-pesanan" style="display:none">
+      <button class="btn-kembali kembali-halaman" data-pj-home>‹ Lapak Saya</button>
       <h3>Pesanan Masuk</h3>
-      <p class="sub">Pesanan terbaru tampil paling atas. Majukan statusnya supaya pembeli tahu kabarnya.</p>
-      <div class="saring-bayar" id="saring-selesai">
-        <button data-tampil="aktif" class="aktif">Pesanan Masuk</button>
-        <button data-tampil="selesai">Pesanan Selesai</button>
+      <p class="sub">Pesanan dikelompokkan sesuai statusnya. Majukan statusnya supaya pembeli tahu kabarnya.</p>
+      <div class="saring-bayar" id="saring-status">
+        <button data-tab="konfirmasi" class="aktif">Perlu Konfirmasi</button>
+        <button data-tab="siap">Siap Diambil</button>
+        <button data-tab="batal">Pembatalan</button>
+        <button data-tab="selesai">Selesai</button>
       </div>
       <div class="saring-bayar" id="saring-bayar">
         <button data-saring="semua" class="aktif">Semua</button>
@@ -461,6 +458,7 @@
     </div>
 
     <div class="blok" id="pj-bungkus-keuangan" style="display:none">
+      <button class="btn-kembali kembali-halaman" data-pj-home>‹ Lapak Saya</button>
       <h3>Keuangan</h3>
       <p class="sub">Total pendapatan dari pesanan yang masuk. Pesanan yang dibatalkan tidak dihitung.</p>
       <div class="keu-rentang" id="keu-rentang">
@@ -1366,22 +1364,35 @@ function bukaToko(lapakLangsung){
 }
 $('d-toko').addEventListener('click', () => bukaToko());
 
-/* ---------- Menu penjual (gaya Shopee Seller) ---------- */
-function gulirKeBlok_(id){ const el = $(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+/* ---------- Menu penjual: tiap menu adalah halaman sendiri ---------- */
+const BLOK_PENJUAL = ['pj-bungkus-profil', 'pj-bungkus-produk', 'pj-bungkus-pesanan', 'pj-bungkus-keuangan'];
+function tampilMenuPenjual_(){
+  $('pj-kartu-id').style.display = '';
+  $('pj-bungkus-menu').style.display = '';
+  BLOK_PENJUAL.forEach(id => { $(id).style.display = 'none'; });
+  window.scrollTo(0, 0);
+}
+function bukaBlokPenjual_(id){
+  $('pj-kartu-id').style.display = 'none';
+  $('pj-bungkus-menu').style.display = 'none';
+  BLOK_PENJUAL.forEach(x => { $(x).style.display = x === id ? '' : 'none'; });
+  window.scrollTo(0, 0);
+}
 document.querySelectorAll('#pj-bungkus-menu .mi').forEach(b => b.addEventListener('click', () => {
   const menu = b.dataset.menu;
-  if (menu === 'produk') gulirKeBlok_('pj-bungkus-produk');
-  else if (menu === 'pesanan') gulirKeBlok_('pj-bungkus-pesanan');
-  else if (menu === 'keuangan') { gulirKeBlok_('pj-bungkus-keuangan'); muatKeuangan_(); }
-  else if (menu === 'profil') gulirKeBlok_('pj-bungkus-profil');
-  else if (menu === 'tambah') { gulirKeBlok_('pj-bungkus-produk'); $('pj-tambah-produk').click(); }
+  if (menu === 'produk') bukaBlokPenjual_('pj-bungkus-produk');
+  else if (menu === 'pesanan') bukaBlokPenjual_('pj-bungkus-pesanan');
+  else if (menu === 'keuangan') { bukaBlokPenjual_('pj-bungkus-keuangan'); muatKeuangan_(); }
+  else if (menu === 'profil') bukaBlokPenjual_('pj-bungkus-profil');
+  else if (menu === 'tambah') { bukaBlokPenjual_('pj-bungkus-produk'); $('pj-tambah-produk').click(); }
   else if (menu === 'toko') {
     const lk = (profilCache && profilCache.lapak) || null;
     if (!lk || !lk.id) { toast('Profil lapak belum lengkap.'); return; }
     bukaToko({ id: lk.id, nama: lk.nama, tim: lk.tim, ruangan: lk.ruangan, noWa: lk.noWa, fotoUrl: lk.fotoUrl });
   }
 }));
-$('pj-kartu-id').addEventListener('click', () => gulirKeBlok_('pj-bungkus-profil'));
+$('pj-kartu-id').addEventListener('click', () => bukaBlokPenjual_('pj-bungkus-profil'));
+document.querySelectorAll('[data-pj-home]').forEach(b => b.addEventListener('click', tampilMenuPenjual_));
 
 /* ---------- Keuangan penjual ---------- */
 let keuRentang = 'bulan';
@@ -1430,8 +1441,8 @@ document.querySelectorAll('#keu-rentang button').forEach(b => b.addEventListener
 }));
 $('keu-terapkan').addEventListener('click', muatKeuangan_);
 function perbaruiMenuPenjual_(daftar){
-  // Angka strip dihitung per customer (per grup checkout), bukan per barang:
-  // satu customer yang memesan banyak barang tetap dihitung satu pesanan.
+  // Lencana di menu Pesanan Masuk: jumlah pesanan yang masih menunggu
+  // konfirmasi, dihitung per customer (per grup checkout), bukan per barang.
   // Status grup mengikuti statusGrupPesanan_ (barang paling awal dalam grup).
   const grupMap = new Map();
   (Array.isArray(daftar) ? daftar : []).forEach(o => {
@@ -1439,14 +1450,8 @@ function perbaruiMenuPenjual_(daftar){
     if (!grupMap.has(kunci)) grupMap.set(kunci, []);
     grupMap.get(kunci).push(o);
   });
-  const statusSemua = [];
-  grupMap.forEach(items => statusSemua.push(statusGrupPesanan_(items)));
-  const hitung = s => statusSemua.filter(x => x === s).length;
-  const perlu = hitung('TERKIRIM');
-  $('mp-perlu').textContent = perlu;
-  $('mp-siap').textContent = hitung('SIAP_DIAMBIL');
-  $('mp-selesai').textContent = hitung('SELESAI');
-  $('mp-total').textContent = statusSemua.length;
+  let perlu = 0;
+  grupMap.forEach(items => { if (statusGrupPesanan_(items) === 'TERKIRIM') perlu++; });
   const lencana = $('mp-lencana');
   lencana.textContent = perlu;
   lencana.style.display = perlu ? '' : 'none';
@@ -2213,7 +2218,10 @@ async function muatProfil(sesudah){
       $('pj-ringkas-profil').style.display = 'none';
       $('form-lapak').style.display = '';
       isiFormLapak(null, pg);
+      $('pj-kartu-id').style.display = '';
       $('pj-bungkus-menu').style.display = 'none';
+      $('pj-bungkus-profil').style.display = '';
+      $('pj-kembali-profil').style.display = 'none';
       $('pj-bungkus-produk').style.display = 'none';
       $('pj-bungkus-pesanan').style.display = 'none';
       $('pj-bungkus-keuangan').style.display = 'none';
@@ -2235,10 +2243,13 @@ async function muatProfil(sesudah){
       });
       $('form-lapak').style.display = 'none';
       isiFormLapak(lapak, pg);
+      $('pj-kartu-id').style.display = '';
       $('pj-bungkus-menu').style.display = '';
-      $('pj-bungkus-produk').style.display = '';
-      $('pj-bungkus-pesanan').style.display = '';
-      $('pj-bungkus-keuangan').style.display = '';
+      $('pj-kembali-profil').style.display = '';
+      $('pj-bungkus-profil').style.display = 'none';
+      $('pj-bungkus-produk').style.display = 'none';
+      $('pj-bungkus-pesanan').style.display = 'none';
+      $('pj-bungkus-keuangan').style.display = 'none';
       muatProdukSaya();
       muatPesananSaya();
       muatKeuangan_();
@@ -2326,6 +2337,7 @@ function renderProdukSaya(){
     let tombolStatus = '';
     if (p.status === 'TAYANG') tombolStatus = '<button class="btn-kecil" data-aksi="HABIS">Tandai Habis</button>';
     else if (p.status === 'HABIS') tombolStatus = '<button class="btn-kecil" data-aksi="TAYANG">Tayangkan Lagi</button>';
+    else if (p.status === 'ARSIP') tombolStatus = '<button class="btn-kecil" data-aksi="TAYANG">Tayangkan Kembali</button>';
     if (p.status !== 'ARSIP') tombolStatus += '<button class="btn-kecil bahaya" data-aksi="ARSIP">Arsipkan</button>';
     tombolStatus += '<button class="btn-kecil bahaya" data-aksi="HAPUS">🗑 Hapus</button>';
     const infoVariasi = (p.variasi && p.variasi.length) ? ' · ' + p.variasi.length + ' variasi' : '';
@@ -2522,7 +2534,16 @@ const LANGKAH_BERIKUT = {
 };
 let pesananMasukCache = [];
 let saringBayar = 'semua';
-let tampilPesanan = 'aktif'; /* 'aktif' = pesanan berjalan; 'selesai' = semua pesanan SELESAI dijadikan satu */
+let tabPesanan = 'konfirmasi'; /* tab Pesanan Masuk: konfirmasi | siap | batal | selesai */
+/* Status grup dipetakan ke tabnya: TERKIRIM menunggu konfirmasi; DIKONFIRMASI
+   dan SIAP_DIAMBIL satu tab (sudah dikonfirmasi penjual); BATAL di Pembatalan;
+   SELESAI di Selesai. */
+function tabDariStatusGrup_(sg){
+  if (sg === 'TERKIRIM') return 'konfirmasi';
+  if (sg === 'DIKONFIRMASI' || sg === 'SIAP_DIAMBIL') return 'siap';
+  if (sg === 'BATAL') return 'batal';
+  return 'selesai';
+}
 function bayarGrup_(items){
   const aktif = items.filter(o => o.status !== 'BATAL');
   if (!aktif.length) return 'BATAL';
@@ -2549,14 +2570,13 @@ function gambarPesananMasuk_(){
     if (b === 'BELUM' || b === 'SEBAGIAN') nBelum++;
     else if (b === 'LUNAS') nLunas++;
   });
-  let nSelesai = 0, nAktif = 0;
-  grupMap.forEach(items => {
-    if (statusGrupPesanan_(items) === 'SELESAI') nSelesai++; else nAktif++;
-  });
-  document.querySelectorAll('#saring-selesai button').forEach(btn => {
-    const k = btn.dataset.tampil;
-    btn.classList.toggle('aktif', k === tampilPesanan);
-    btn.textContent = k === 'selesai' ? 'Pesanan Selesai (' + nSelesai + ')' : 'Pesanan Masuk (' + nAktif + ')';
+  const hitungTab = { konfirmasi: 0, siap: 0, batal: 0, selesai: 0 };
+  grupMap.forEach(items => { hitungTab[tabDariStatusGrup_(statusGrupPesanan_(items))]++; });
+  const LABEL_TAB = { konfirmasi: 'Perlu Konfirmasi', siap: 'Siap Diambil', batal: 'Pembatalan', selesai: 'Selesai' };
+  document.querySelectorAll('#saring-status button').forEach(btn => {
+    const k = btn.dataset.tab;
+    btn.classList.toggle('aktif', k === tabPesanan);
+    btn.textContent = LABEL_TAB[k] + ' (' + hitungTab[k] + ')';
   });
   document.querySelectorAll('#saring-bayar button').forEach(btn => {
     const k = btn.dataset.saring;
@@ -2569,9 +2589,7 @@ function gambarPesananMasuk_(){
   }
   let tampil = 0;
   grupMap.forEach(items => {
-    const sg = statusGrupPesanan_(items);
-    if (tampilPesanan === 'selesai' && sg !== 'SELESAI') return;
-    if (tampilPesanan === 'aktif' && sg === 'SELESAI') return;
+    if (tabDariStatusGrup_(statusGrupPesanan_(items)) !== tabPesanan) return;
     const b = bayarGrup_(items);
     if (saringBayar === 'belum' && !(b === 'BELUM' || b === 'SEBAGIAN')) return;
     if (saringBayar === 'lunas' && b !== 'LUNAS') return;
@@ -2579,18 +2597,15 @@ function gambarPesananMasuk_(){
     tampil++;
   });
   if (!tampil) {
-    let pesanKosong;
-    if (tampilPesanan === 'selesai') {
-      pesanKosong = saringBayar === 'belum' ? 'Belum ada pesanan selesai yang belum dibayar.' : 'Belum ada pesanan yang selesai.';
-    } else if (saringBayar === 'lunas') {
-      pesanKosong = 'Belum ada pesanan aktif yang sudah dibayar.';
-    } else if (saringBayar === 'belum') {
-      pesanKosong = 'Tidak ada pesanan aktif yang belum dibayar. Semua lunas 🎉';
-    } else {
-      pesanKosong = nSelesai > 0
-        ? 'Semua pesanan sudah selesai. Lihat lewat tombol Pesanan Selesai di atas.'
-        : 'Belum ada pesanan masuk. Pesanan pembeli akan tampil di sini.';
-    }
+    const PESAN_KOSONG_TAB = {
+      konfirmasi: 'Tidak ada pesanan yang menunggu konfirmasi.',
+      siap: 'Belum ada pesanan yang dikonfirmasi atau siap diambil.',
+      batal: 'Belum ada pesanan yang dibatalkan.',
+      selesai: 'Belum ada pesanan yang selesai.'
+    };
+    let pesanKosong = PESAN_KOSONG_TAB[tabPesanan];
+    if (saringBayar === 'belum') pesanKosong += ' (Saringan: Belum Bayar)';
+    else if (saringBayar === 'lunas') pesanKosong += ' (Saringan: Sudah Bayar)';
     wadah.innerHTML = '<p class="sub">' + pesanKosong + '</p>';
   }
 }
@@ -2598,8 +2613,8 @@ document.querySelectorAll('#saring-bayar button').forEach(btn => btn.addEventLis
   saringBayar = btn.dataset.saring;
   gambarPesananMasuk_();
 }));
-document.querySelectorAll('#saring-selesai button').forEach(btn => btn.addEventListener('click', () => {
-  tampilPesanan = btn.dataset.tampil;
+document.querySelectorAll('#saring-status button').forEach(btn => btn.addEventListener('click', () => {
+  tabPesanan = btn.dataset.tab;
   gambarPesananMasuk_();
 }));
 async function muatPesananSaya(){
