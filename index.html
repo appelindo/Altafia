@@ -1502,11 +1502,14 @@ $('lp-kirim').addEventListener('click', async () => {
 
 /* ================= Bagikan ================= */
 function tautanProduk(id){
-  // Halaman statis p/<id>.html di situs ini juga: berisi tag Open Graph
-  // (foto, nama, harga) agar pratinjau tautan di WhatsApp/dll. tampil sbg
-  // kartu menarik; pengunjung manusia otomatis diteruskan ke produk ini.
-  // (Apps Script tidak bisa: halamannya dibungkus iframe oleh Google.)
-  return location.origin + location.pathname + 'p/' + encodeURIComponent(id) + '.html';
+  // Tautan langsung ke aplikasi (?produk=<id>): selalu bisa dibuka untuk
+  // produk apa pun, termasuk yang baru diunggah. Keputusan Selby 19 Nov 2026:
+  // halaman statis p/<id>.html tidak dipakai lagi untuk tombol Bagikan,
+  // karena halaman itu harus dibuatkan dulu per produk (produk baru = 404).
+  // Konsekuensinya pratinjau tautan di WhatsApp memakai pratinjau umum
+  // situs, bukan foto/judul produk. Berkas p/*.html lama dibiarkan di repo
+  // agar tautan lama yang sudah terlanjur tersebar tetap berfungsi.
+  return location.origin + location.pathname + '?produk=' + encodeURIComponent(id);
 }
 async function bagikanProduk(p){
   const tautan = tautanProduk(p.id);
