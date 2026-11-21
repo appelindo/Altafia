@@ -174,6 +174,13 @@
   .lembar .kepala b{font-size:16px}
   .lembar .x{width:44px;height:44px;border-radius:50%;border:none;background:#f2f2f2;font-size:14px;cursor:pointer}
   .lembar .foto-besar{height:min(96vw,54vh);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .lembar .foto-besar .galeri{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;height:100%;scrollbar-width:none}
+  .lembar .foto-besar .galeri::-webkit-scrollbar{display:none}
+  .lembar .foto-besar .galeri-slide{flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;position:relative}
+  .lembar .foto-besar .lencana-asli{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:3px 8px;border-radius:999px}
+  .galeri-titik{position:absolute;bottom:10px;left:0;right:0;display:flex;gap:6px;justify-content:center;pointer-events:none;z-index:2}
+  .galeri-titik i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);box-shadow:0 0 3px rgba(0,0,0,.45)}
+  .galeri-titik i.aktif{background:#fff}
   .lembar .foto-besar img{width:100%;height:100%;object-fit:contain;display:block}
   .lembar .foto-besar .inisial{font-size:96px}
   .lembar .isi{padding:14px 16px}
@@ -373,6 +380,11 @@
     <div class="seksi" id="seksi-po" style="display:none">
       <div class="judul"><b class="oranye">⚡ Pre-Order Hari Ini</b></div>
       <div class="geser" id="daftar-po"></div>
+    </div>
+
+    <div class="seksi" id="seksi-laris" style="display:none">
+      <div class="judul"><b class="oranye">🔥 Best Seller</b></div>
+      <div class="geser" id="daftar-laris"></div>
     </div>
 
     <div class="seksi" style="padding-bottom:2px">
@@ -690,7 +702,7 @@
   <div class="sukses">
     <div class="centang">✓</div>
     <b>Pesanan Terkirim!</b>
-    <p>Pesananmu sudah masuk ke penjual dan <b>menunggu konfirmasi</b>.<br>Simpan kode pesanan ini — menekan <b>Selesai</b> akan membuka WhatsApp penjual untuk meneruskan pesananmu:</p>
+    <p>Pesananmu sudah masuk ke penjual. <b>Selesaikan pembayaran</b> supaya segera diproses.<br>Simpan kode pesanan ini — menekan <b>Selesai</b> akan membuka WhatsApp penjual untuk meneruskan pesananmu:</p>
     <div class="kode" id="k-kode">—</div>
   </div>
   <div class="status-alur">
@@ -814,7 +826,7 @@
   <div class="sukses">
     <div class="centang">✓</div>
     <b>Checkout Terkirim!</b>
-    <p>Pesananmu sudah masuk ke penjual dan <b>menunggu konfirmasi</b>.<br>Kode grup checkout ini:</p>
+    <p>Pesananmu sudah masuk ke penjual. <b>Selesaikan pembayaran</b> supaya segera diproses.<br>Kode grup checkout ini:</p>
     <div class="kode" id="kk-grup">—</div>
   </div>
   <div id="kk-isi"></div>
@@ -1238,6 +1250,40 @@ function mulaiAnimasiPo_(){
   };
   poAnimasiId = requestAnimationFrame(langkah);
 }
+/* Animasi lajur Best Seller: pola yang sama persis dengan lajur PO. */
+let larisAnimasiId = null;
+let larisJedaSampai = 0;
+function mulaiAnimasiLaris_(){
+  const el = $('daftar-laris');
+  if (larisAnimasiId) { cancelAnimationFrame(larisAnimasiId); larisAnimasiId = null; }
+  if (!el || !el.querySelector('.kartu-po.duplikat')) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!el.dataset.jedaTerpasang) {
+    el.dataset.jedaTerpasang = '1';
+    const jeda = () => { larisJedaSampai = performance.now() + 4000; };
+    el.addEventListener('pointerdown', jeda);
+    el.addEventListener('touchstart', jeda, { passive: true });
+    el.addEventListener('wheel', jeda, { passive: true });
+  }
+  let terakhir = 0;
+  const langkah = (t) => {
+    larisAnimasiId = requestAnimationFrame(langkah);
+    if (!el.isConnected || !$('seksi-laris') || $('seksi-laris').style.display === 'none') { terakhir = t; return; }
+    if (document.hidden || t < larisJedaSampai) { terakhir = t; return; }
+    if (terakhir) {
+      const dt = Math.min(t - terakhir, 80);
+      el.scrollLeft += dt * 0.03; // ±30 px per detik
+      const pertama = el.querySelector('.kartu-po:not(.duplikat)');
+      const salinan = el.querySelector('.kartu-po.duplikat');
+      if (pertama && salinan) {
+        const periode = salinan.offsetLeft - pertama.offsetLeft;
+        if (periode > 0 && el.scrollLeft >= periode) el.scrollLeft -= periode;
+      }
+    }
+    terakhir = t;
+  };
+  larisAnimasiId = requestAnimationFrame(langkah);
+}
 function renderKatalog(){
   const hasil = semuaProduk.filter(cocokFilter);
   /* Bagian PO */
@@ -1265,6 +1311,30 @@ function renderKatalog(){
     });
   }
   mulaiAnimasiPo_();
+  /* Bagian Best Seller: produk yang sudah terjual, terbanyak dulu (maks 10) */
+  const laris = hasil.filter(p => (p.terjual || 0) > 0)
+    .slice().sort((a, b) => (b.terjual || 0) - (a.terjual || 0)).slice(0, 10);
+  const elLaris = $('daftar-laris');
+  elLaris.innerHTML = '';
+  $('seksi-laris').style.display = laris.length ? '' : 'none';
+  laris.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'kartu-po';
+    d.innerHTML = kartuHtml(p, true);
+    d.addEventListener('click', () => bukaDetail(p.id));
+    elLaris.appendChild(d);
+  });
+  if (laris.length >= 2) {
+    laris.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'kartu-po duplikat';
+      d.setAttribute('aria-hidden', 'true');
+      d.innerHTML = kartuHtml(p, true);
+      d.addEventListener('click', () => bukaDetail(p.id));
+      elLaris.appendChild(d);
+    });
+  }
+  mulaiAnimasiLaris_();
   /* Grid umum */
   const grid = $('daftar-produk');
   grid.innerHTML = '';
@@ -1324,11 +1394,32 @@ function gambarPenilaian_(p, ulasan){
   }
   el.innerHTML = html;
 }
+/* Galeri foto detail: foto utama (poster) + foto kedua (foto asli produk)
+   yang bisa digeser, dengan titik penanda posisi. Bila foto kedua tidak ada,
+   tampilannya sama seperti sebelumnya: satu foto saja. */
+function galeriDetailHtml_(p){
+  const daftar = [p.fotoUrl, p.foto2Url].filter(Boolean);
+  if (daftar.length < 2) return fotoHtml(daftar[0] || '', p.nama);
+  return '<div class="galeri">' + daftar.map((u, i) =>
+    '<div class="galeri-slide">' + fotoHtml(u, p.nama) +
+    (i === 1 ? '<span class="lencana-asli">📷 Foto asli produk</span>' : '') + '</div>').join('') +
+    '</div><div class="galeri-titik"><i class="aktif"></i><i></i></div>';
+}
+function pasangGaleriDetail_(wadah){
+  const g = wadah.querySelector('.galeri');
+  if (!g) return;
+  const titik = wadah.querySelectorAll('.galeri-titik i');
+  g.addEventListener('scroll', () => {
+    const idx = Math.round(g.scrollLeft / Math.max(1, g.clientWidth));
+    titik.forEach((t, i) => t.classList.toggle('aktif', i === idx));
+  }, { passive: true });
+}
 function isiDetail_(p, l, ulasan){
     produkAktif = Object.assign({}, p, { lapakDetail: l });
     const wadahFoto = $('d-foto');
     wadahFoto.className = 'foto-besar ' + kelasWarna(p.nama);
-    wadahFoto.innerHTML = fotoHtml(p.fotoUrl, p.nama);
+    wadahFoto.innerHTML = galeriDetailHtml_(p);
+    pasangGaleriDetail_(wadahFoto);
     $('d-nama').textContent = p.nama || '';
     $('d-harga').textContent = hargaTampil(p);
     const kotakVariasi = $('d-variasi');
